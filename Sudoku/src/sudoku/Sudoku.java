@@ -18,6 +18,7 @@ public class Sudoku {
         // TODO code application logic here
         System.out.println("Hello world!");
         System.out.println("Hello world!222");
+        System.out.println("Hello world123");
     }
     
 }
