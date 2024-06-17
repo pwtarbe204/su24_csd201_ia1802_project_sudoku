@@ -1,0 +1,24 @@
+1. Giao diện (UI)
+Bảng Sudoku: Dùng một mảng hai chiều (9x9) để biểu diễn bảng Sudoku.
+Hình ảnh số: 9 tấm ảnh kích thước 64x64 đại diện cho các số từ 1 đến 9.
+Chọn ô: Khi người dùng nhấn vào một ô bất kỳ, làm đen ô đó và tô sáng tất cả các số giống trong bảng.
+2. Chức năng Start game và End game
+Start game:
+Chọn độ khó: Dễ, trung bình, khó. Tùy vào độ khó, số ô trống sẽ nhiều hay ít.
+Khởi tạo bảng Sudoku: Sinh ra bảng Sudoku hoàn chỉnh và loại bỏ một số ô để tạo các ô trống.
+In game: 
+Lập trình sự kiện cho các nút và ô: Xử lý sự kiện khi người dùng click vào các ô và nút.
+Chức năng gợi ý: Giúp người chơi khi gặp khó khăn.
+Tạo bộ đếm thời gian: Để tính thời gian chơi.
+End game:
+Lưu điểm: Lưu điểm, thời gian, và tên người chơi vào một file .txt.
+Điều kiện thắng/thua: Người chơi thắng khi điền đúng toàn bộ bảng Sudoku. Thua khi sai 3 lần.
+Kết thúc game: Hiển thị thông báo tạm biệt và bảng chọn chơi lại hay thoát.
+3. Lịch sử người chơi
+Lưu lại lịch sử người chơi với các thông tin: STT, Tên, Thời gian bắt đầu, Thời gian kết thúc, Số điểm. Không cần lưu khi thua.
+4. Logic kiểm tra tính hợp lệ của số
+Kiểm tra tính hợp lệ:
+Hàng: Kiểm tra số không bị trùng trong hàng.
+Cột: Kiểm tra số không bị trùng trong cột.
+Ô 3x3: Kiểm tra số không bị trùng trong mỗi ô 3x3.
+Kiểm tra tính toàn vẹn của bảng: Sau khi người chơi điền một số, kiểm tra xem toàn bộ bảng có còn hợp lệ hay không.
