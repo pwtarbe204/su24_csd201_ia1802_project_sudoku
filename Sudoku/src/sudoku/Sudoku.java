@@ -1178,10 +1178,10 @@ public class Sudoku extends javax.swing.JFrame {
 
     private void btNewGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btNewGameActionPerformed
         // TODO add your handling code here:
-        createBoard();
-        genarateBoard();
-        reset();
-        //timer.start();  
+    createBoard();
+    genarateBoard();
+    reset();
+    runTimer(); 
     }//GEN-LAST:event_btNewGameActionPerformed
 
     private void btRankingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btRankingActionPerformed
