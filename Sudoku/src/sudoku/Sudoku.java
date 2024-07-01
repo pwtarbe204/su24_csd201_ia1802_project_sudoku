@@ -475,29 +475,13 @@ public class Sudoku extends javax.swing.JFrame {
         return true;
     }
 
-    public void updateInformation() {
-        if (isWin()) {
-            user.setScore(user.getScore() + this.score);
-            JOptionPane.showMessageDialog(this, "Congratulations! You are the champion!");
-            String text = listPlayer.size() + "\n";
-            listPlayer.sort((o2, o1) -> Integer.compare(o1.getScore(), o2.getScore()));
-            for (Player p : listPlayer) {
-                text += p.toString();
-            }
-            System.out.println(text);
-            try {
-                FileWriter fw = new FileWriter("information.txt");
-                //--END FIXED PART----------------------------
-
-                //OUTPUT - @STUDENT: ADD YOUR CODE FOR OUTPUT HERE:
-                fw.write(text);
-                //--FIXED PART - DO NOT EDIT ANY THINGS HERE--
-                //--START FIXED PART-------------------------- 
-                fw.flush();
-                fw.close();
-            } catch (IOException ex) {
-                System.out.println("Output Exception # " + ex);
-            }
+public void updateInformation() {
+    if (isWin()) {
+        user.setScore(user.getScore() + this.score);
+        int option = JOptionPane.showOptionDialog(this, "Congratulations! You are the champion!\nDo you want to continue playing?", "Winner!",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Next", "No"}, "Next");
+        if (option == JOptionPane.NO_OPTION) {
+            JOptionPane.showMessageDialog(this, "Your total score: " + user.getScore());
             updateTable();
             bt1.setEnabled(false);
             bt2.setEnabled(false);
@@ -509,22 +493,27 @@ public class Sudoku extends javax.swing.JFrame {
             bt8.setEnabled(false);
             bt9.setEnabled(false);
             timer.stop();
-        }
-        if (isLose()) {
-            JOptionPane.showMessageDialog(this, "Oh noo! You are loser!");
-            bt1.setEnabled(false);
-            bt2.setEnabled(false);
-            bt3.setEnabled(false);
-            bt4.setEnabled(false);
-            bt5.setEnabled(false);
-            bt6.setEnabled(false);
-            bt7.setEnabled(false);
-            bt8.setEnabled(false);
-            bt9.setEnabled(false);
-            timer.stop();
+        } else {
+            createBoard();
+            genarateBoard();
+            reset();
+            runTimer();
         }
     }
-
+    if (isLose()) {
+        JOptionPane.showMessageDialog(this, "Oh noo! You are loser!");
+        bt1.setEnabled(false);
+        bt2.setEnabled(false);
+        bt3.setEnabled(false);
+        bt4.setEnabled(false);
+        bt5.setEnabled(false);
+        bt6.setEnabled(false);
+        bt7.setEnabled(false);
+        bt8.setEnabled(false);
+        bt9.setEnabled(false);
+        timer.stop();
+    }
+}
     public void showSolve() {
         pnlBoard.setLayout(new GridLayout(NUM_ROW, NUM_COL));
         pnlBoard.removeAll();
@@ -555,17 +544,17 @@ public class Sudoku extends javax.swing.JFrame {
 
     }
 
-    public void updateTable() {
-        listPlayer.sort((o2, o1) -> Integer.compare(o1.getScore(), o2.getScore()));
-        String text = String.format("%-5s %-20s %-10s\n", "Rank", "Name", "Score");
+public void updateTable() {
+    listPlayer.sort((o2, o1) -> Integer.compare(o1.getScore(), o2.getScore()));
+    String text = String.format("%-5s %-20s %-10s\n", "Rank", "Name", "Score");
+    text += "-----------------------------------\n";
+    int dem = 1;
+    for (Player p : listPlayer) {
+        text += String.format(" %-5d%-20s %-10s\n", dem++, p.getName(), p.getScore());
         text += "-----------------------------------\n";
-        int dem = 1;
-        for (Player p : listPlayer) {
-            text += String.format(" %-5d%-20s %-10s\n", dem++, p.getName(), p.getScore());
-            text += "-----------------------------------\n";
-        }
-        lbRanking.setText(text);
     }
+    lbRanking.setText(text);
+}
 
     public boolean isLose() {
         if (countWrong == 4) {
