@@ -31,7 +31,7 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  *
- * @author Bui Quoc Tin - CE180935
+ * @author SU24_CSD201_IA1802_GROUP4
  */
 public class Sudoku extends javax.swing.JFrame {
 
