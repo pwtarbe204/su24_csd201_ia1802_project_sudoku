@@ -556,6 +556,7 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     public void updateTable() {
+        listPlayer.sort((o2, o1) -> Integer.compare(o1.getScore(), o2.getScore()));
         String text = String.format("%-5s %-20s %-10s\n", "Rank", "Name", "Score");
         text += "-----------------------------------\n";
         int dem = 1;
