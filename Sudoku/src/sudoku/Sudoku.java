@@ -306,8 +306,16 @@ public class Sudoku extends javax.swing.JFrame {
         }
     }
 
-    public void updateScore(int score) {
+    public void updateScoreEasy(int score) {
         this.score += score;
+        lbScore.setText(this.score + "");
+    }
+    public void updateScoreMedium(int score) {
+        this.score += score*2;
+        lbScore.setText(this.score + "");
+    }
+    public void updateScoreHard(int score) {
+        this.score += score*3;
         lbScore.setText(this.score + "");
     }
 
@@ -540,11 +548,10 @@ public class Sudoku extends javax.swing.JFrame {
             pause();
             getUser().setScore(getUser().getScore() + this.score);
             for (Player p : listPlayer) {
-                if  (p.getId().equalsIgnoreCase(getUser().getId())) {
+                if (p.getId().equalsIgnoreCase(getUser().getId())) {
                     p.setScore(getUser().getScore());
-               }
+                }
             }
-            JOptionPane.showMessageDialog(this, "Congratulations! You are the champion!");
             String text = listPlayer.size() + "\n";
             listPlayer.sort((o2, o1) -> Integer.compare(o1.getScore(), o2.getScore()));
             for (Player p : listPlayer) {
@@ -564,29 +571,28 @@ public class Sudoku extends javax.swing.JFrame {
             } catch (IOException ex) {
                 System.out.println("Output Exception # " + ex);
             }
-            
-//            int option = JOptionPane.showOptionDialog(this, "Congratulations! You are the champion!\nDo you want to continue playing?", "Winner!",
-//                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Next", "No"}, "Next");
-//            if (option == JOptionPane.NO_OPTION) {
-//                JOptionPane.showMessageDialog(this, "Your total score: " + user.getScore());
-            updateTable();
-            bt1.setEnabled(false);
-            bt2.setEnabled(false);
-            bt3.setEnabled(false);
-            bt4.setEnabled(false);
-            bt5.setEnabled(false);
-            bt6.setEnabled(false);
-            bt7.setEnabled(false);
-            bt8.setEnabled(false);
-            bt9.setEnabled(false);
-            btPause.setEnabled(false);
-            
-//            } else {
-//                createBoard();
-//                genarateBoard();
-//                reset();
-//                pause();
-//            }
+
+            int option = JOptionPane.showOptionDialog(this, "Congratulations! You are the champion!\nDo you want to continue playing?", "Winner!",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Next", "No"}, "Next");
+            if (option == JOptionPane.NO_OPTION) {
+                JOptionPane.showMessageDialog(this, "Your total score: " + user.getScore());
+                updateTable();
+                bt1.setEnabled(false);
+                bt2.setEnabled(false);
+                bt3.setEnabled(false);
+                bt4.setEnabled(false);
+                bt5.setEnabled(false);
+                bt6.setEnabled(false);
+                bt7.setEnabled(false);
+                bt8.setEnabled(false);
+                bt9.setEnabled(false);
+                btPause.setEnabled(false);
+            } else if (option == JOptionPane.YES_OPTION) {
+                createBoard();
+                genarateBoard();
+                limitTime();
+                reset();
+            }
         }
         if (isLose()) {
             pause();
@@ -601,7 +607,7 @@ public class Sudoku extends javax.swing.JFrame {
             bt8.setEnabled(false);
             bt9.setEnabled(false);
             btPause.setEnabled(false);
-            
+
         }
     }
 

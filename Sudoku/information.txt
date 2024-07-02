@@ -1,5 +1,5 @@
 12
-id02#phuong02#5975
+id02#phuong02#8025
 id01#tin02#4600
 id07#phuong02#3125
 id05#nhan02#3000

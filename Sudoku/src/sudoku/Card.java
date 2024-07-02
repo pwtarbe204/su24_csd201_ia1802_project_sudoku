@@ -19,7 +19,7 @@ import javax.swing.JOptionPane;
 
 /**
  *
- * @author Bui Quoc Tin - CE180935
+ * @author SU24_CSD201_IA1802_GROUP4
  */
 public class Card extends JLabel {
 
@@ -90,23 +90,61 @@ public class Card extends JLabel {
                     parent.board[row][col] = selectedValue;
                     fixedNum[row][col] = true; // Đánh dấu là cố định
                     System.out.println(parent.checkRow(row) + " " + parent.checkCol(col));
-                    if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
-                        parent.updateScore(parent._BONUS);
-                    } else {
-                        if (parent.checkRow(row)) {
-                            parent.updateScore(parent._ONEROWCOL);
+                    if (parent.isEasy) {
+                        if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
+                            parent.updateScoreEasy(parent._BONUS);
+                        } else {
+                            if (parent.checkRow(row)) {
+                                parent.updateScoreEasy(parent._ONEROWCOL);
+                            }
+                            if (parent.checkCol(col)) {
+                                parent.updateScoreEasy(parent._ONEROWCOL);
+                            }
+                            if (parent.checkBaba(row, col)) {
+                                parent.updateScoreEasy(parent._ONEBABA);
+                            }
+                            if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
+                                parent.updateScoreEasy(parent._ONECELL);
+                            }
                         }
-                        if (parent.checkCol(col)) {
-                            parent.updateScore(parent._ONEROWCOL);
-                        }
-                        if (parent.checkBaba(row, col)) {
-                            parent.updateScore(parent._ONEBABA);
-                        }
+                    } else if (parent.isMedium) {
+                        if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
+                            parent.updateScoreMedium(parent._BONUS);
+                        } else {
+                            if (parent.checkRow(row)) {
+                                parent.updateScoreMedium(parent._ONEROWCOL);
+                            }
+                            if (parent.checkCol(col)) {
+                                parent.updateScoreMedium(parent._ONEROWCOL);
+                            }
+                            if (parent.checkBaba(row, col)) {
+                                parent.updateScoreMedium(parent._ONEBABA);
+                            }
 
-                        if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
-                            parent.updateScore(parent._ONECELL);
+                            if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
+                                parent.updateScoreMedium(parent._ONECELL);
+                            }
+                        }
+                    } else if (parent.isHard) {
+                        if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
+                            parent.updateScoreHard(parent._BONUS);
+                        } else {
+                            if (parent.checkRow(row)) {
+                                parent.updateScoreHard(parent._ONEROWCOL);
+                            }
+                            if (parent.checkCol(col)) {
+                                parent.updateScoreHard(parent._ONEROWCOL);
+                            }
+                            if (parent.checkBaba(row, col)) {
+                                parent.updateScoreHard(parent._ONEBABA);
+                            }
+
+                            if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
+                                parent.updateScoreHard(parent._ONECELL);
+                            }
                         }
                     }
+
                     parent.highlight(row, col);
                     parent.updateInformation();
                     parent.numberButtonClicked(-1);
