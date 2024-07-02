@@ -474,7 +474,6 @@ public class Sudoku extends javax.swing.JFrame {
         }
         return true;
     }
-    
 public void updateInformation() {
     if (isWin()) {
         user.setScore(user.getScore() + this.score);
