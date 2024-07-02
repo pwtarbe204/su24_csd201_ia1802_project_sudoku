@@ -1,6 +1,6 @@
 12
+id02#phuong02#5975
 id01#tin02#4600
-id02#phuong02#3650
 id07#phuong02#3125
 id05#nhan02#3000
 id10#nhan02#3000

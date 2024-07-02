@@ -19,7 +19,7 @@ import javax.swing.JOptionPane;
 
 /**
  *
- * @author SU24_CSD201_IA1802_GROUP4
+ * @author Bui Quoc Tin - CE180935
  */
 public class Card extends JLabel {
 
@@ -78,6 +78,9 @@ public class Card extends JLabel {
     }
 
     public void cardClicked() {
+        System.out.println("row: " + row);
+        System.out.println("col: " + col);
+
         if (!fixedNum[row][col]) {
             parent.highlight(row, col);
             int selectedValue = parent.getSelectedNumber(); // Lấy số từ nút bên phải
@@ -87,36 +90,45 @@ public class Card extends JLabel {
                     parent.board[row][col] = selectedValue;
                     fixedNum[row][col] = true; // Đánh dấu là cố định
                     System.out.println(parent.checkRow(row) + " " + parent.checkCol(col));
-                    if (parent.checkRow(row)) {
-                        parent.updateScore(parent._ONEROWCOL);
-                    }
-                    if (parent.checkCol(col)) {
-                        parent.updateScore(parent._ONEROWCOL);
-                    }
-                    if (parent.checkBaba(row, col)) {
-                        parent.updateScore(parent._ONEBABA);
-                    }
-                    if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
-                        parent.updateScore(parent._ONECELL);
-                    }
-                    parent.updateInformation();
+                    if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
+                        parent.updateScore(parent._BONUS);
+                    } else {
+                        if (parent.checkRow(row)) {
+                            parent.updateScore(parent._ONEROWCOL);
+                        }
+                        if (parent.checkCol(col)) {
+                            parent.updateScore(parent._ONEROWCOL);
+                        }
+                        if (parent.checkBaba(row, col)) {
+                            parent.updateScore(parent._ONEBABA);
+                        }
 
+                        if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
+                            parent.updateScore(parent._ONECELL);
+                        }
+                    }
+                    parent.highlight(row, col);
+                    parent.updateInformation();
+                    parent.numberButtonClicked(-1);
                 } else {
                     parent.highlight(row, col);
+                    parent.updateInformation();
                     parent.numberButtonClicked(-1);
                     parent.isWrong();
-                    parent.updateInformation();
-                    System.out.println(parent.countWrong);
                     if (parent.countWrong < 5) {
                         JOptionPane.showMessageDialog(parent, "The value is invalid! You have '" + (5 - parent.countWrong) + "' live!");
                     }
                 }
-                parent.highlight(row, col);
-                parent.numberButtonClicked(-1);
             }
         } else {
             parent.highlight(row, col);
             parent.numberButtonClicked(-1);
+        }
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                System.out.printf("%5d", parent.board[i][j]);
+            }
+            System.out.println("");
         }
     }
 
