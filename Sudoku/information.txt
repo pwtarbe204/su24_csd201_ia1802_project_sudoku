@@ -1,5 +1,6 @@
 12
 id01#tin02#4600
+id02#phuong02#3650
 id07#phuong02#3125
 id05#nhan02#3000
 id10#nhan02#3000
@@ -9,5 +10,4 @@ id11#Luuu#2150
 Hehe#Phuong#2150
 id03#thien02#2000
 id08#thien02#2000
-id02#phuong02#1000
 id06#tin02#1000

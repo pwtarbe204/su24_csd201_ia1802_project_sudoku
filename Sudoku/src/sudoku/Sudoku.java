@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
@@ -48,22 +50,28 @@ public class Sudoku extends javax.swing.JFrame {
     public final int _ONEROWCOL = 50;
     public final int _ONEBABA = 75;
 
-    Thread timer;
-    int timeCount;
     Card[][] map;
     Graphics2D g;
+    ArrayList<Player> listPlayer;
+
     int mau;
     int countWrong = 0;
+    int limitTime = 600;
+    long timeCount = 0;
 
-    private int selectedNumber = -1;
-    private int selectedRow = -1;
+    public int selectedNumber = -1;
+    public int selectedRow = -1;
+    public Timer timer;
+    public long elapsedTime = 0;
+    public long startTime;
+    public boolean isRunning = false;
     public int[][] board;
     public boolean[][] fixedNum;
     public boolean[][] highlight;
     public int[][] solveBoard;
-    boolean isEasy = true, isMedium = false, isHard = false, isBtRanking = false, isTheFirstTime = false, isSolve = true;
-    ArrayList<Player> listPlayer;
-    Player user = null;
+    boolean isEasy = true, isMedium = false, isHard = false, isBtRanking = false, isTheFirstTime = false, isSolve = true, isPause = false;
+
+    public Player user;
     public int score = 0;
 
     public void numberButtonClicked(int number) {
@@ -208,26 +216,67 @@ public class Sudoku extends javax.swing.JFrame {
         return String.format("%02d:%02d:%02d", time / 3600, (time / 60) % 60, time % 60);
     }
 
-    public void runTimer() {
-        timer = new Thread() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        ++timeCount;
-                        lbTime.setText(int2time(timeCount));
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ex) {
-                        java.util.logging.Logger.getLogger(Sudoku.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+    // Set time
+    private class TimerTaskImpl extends TimerTask {
 
-                }
-            }
-        };
-        timer.start();
+        @Override
+        public void run() {
+            timeCount = (System.currentTimeMillis() - startTime) / 1000;
+            lbTime.setText(int2time(timeCount));
+            updateInformation();
+        }
+    }
+
+    private String int2time(long time) {
+        return String.format("%02d:%02d:%02d", time / 3600, (time / 60) % 60, time % 60);
+    }
+
+    //Start time bắt đầu từ 0
+    public void start() {
+        if (isRunning) {
+            return;
+        }
+        timer = new Timer();
+        isRunning = true;
+        startTime = System.currentTimeMillis();
+        timer.scheduleAtFixedRate(new TimerTaskImpl(), 0, 1000);
+    }
+
+    //stop time
+    public void pause() {
+        if (!isRunning) {
+            return;
+        }
+        isRunning = false;
+        timer.cancel();
+        elapsedTime = System.currentTimeMillis() - startTime;
+    }
+
+    //khi stop muốn chạy tiếp thì resume 
+    public void resume() {
+        if (isRunning) {
+            return;
+        }
+        timer = new Timer();
+        isRunning = true;
+        startTime = System.currentTimeMillis() - elapsedTime;
+        timer.scheduleAtFixedRate(new TimerTaskImpl(), 0, 1000);
+    }
+
+    public void endGame() {
+        pause();
+        long totalTime = timeCount;
+        System.out.println("Total time played: " + totalTime / 1000 + " seconds");
+        // Code để kết thúc trò chơi
+    }
+
+    public Player getUser() {
+        return user;
     }
 
     public void reset() {
+        user = getUser();
+        System.out.printf("#%5s#%5s#%5s\n", user.getId(), user.getName(), user.getScore());
         countWrong = 0;
         lbMistake.setText("0/5");
         score = 0;
@@ -244,11 +293,17 @@ public class Sudoku extends javax.swing.JFrame {
         bt8.setEnabled(true);
         bt9.setEnabled(true);
         btSolve.setEnabled(false);
+        btRanking.setEnabled(true);
+        btPause.setEnabled(true);
+        pause();
+        start();
     }
 
     public void isWrong() {
-        ++countWrong;
-        lbMistake.setText(countWrong + "/5");
+        if (countWrong != 5) {
+            ++countWrong;
+            lbMistake.setText(countWrong + "/5");
+        }
     }
 
     public void updateScore(int score) {
@@ -275,34 +330,49 @@ public class Sudoku extends javax.swing.JFrame {
                 int score = Integer.parseInt(str[2]);
                 listPlayer.add(new Player(id, name, score));
             }
-            for (Player s : listPlayer) {
-                System.out.println("Id: " + s.getId() + " Name: " + s.getName() + " Score: " + s.getScore());
-            }
         } catch (Exception e) {
             System.out.println("#File is not exist!");
         }
+        String id;
         if (!isTheFirstTime) {
             int check = JOptionPane.showConfirmDialog(this, "Is this the first time, right?");
             System.out.println(check);
             if (check == 0) {
-                String id;
                 while (true) {
                     id = JOptionPane.showInputDialog("Hello, please enter id to save your information!");
+                    if (id == null) {
+                        System.exit(0);
+                        this.setVisible(false);
+                        this.dispose();
+                    }
                     if (checkId(id) == -1) {
                         break;
                     } else {
                         JOptionPane.showMessageDialog(this, "The id is exist in list!");
                     }
                 }
-                String name = JOptionPane.showInputDialog("Hello, please enter your name");
+                String name;
+                while (true) {
+                    name = JOptionPane.showInputDialog("Hello, please enter your name");
+                    if (name.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "The name can not empty!");
+                    } else {
+                        break;
+                    }
+                }
                 int score = 0;
                 user = new Player(id, name, score);
                 listPlayer.add(user);
             } else if (check == 1) {
-                String id;
                 while (true) {
                     id = JOptionPane.showInputDialog("Enter your ID: ");
                     int index = checkId(id);
+
+                    if (id == null) {
+                        System.exit(0);
+                        this.setVisible(false);
+                        this.dispose();
+                    }
                     if (index != -1) {
                         user = listPlayer.get(index);
                         break;
@@ -310,9 +380,10 @@ public class Sudoku extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(this, "Wrong ID!");
                     }
                 }
-            }
-            for (Player u : listPlayer) {
-                System.out.println(u.getId() + "#" + u.getName() + "#" + u.getScore());
+            } else {
+                System.exit(0);
+                this.setVisible(false);
+                this.dispose();
             }
         }
 
@@ -349,7 +420,7 @@ public class Sudoku extends javax.swing.JFrame {
             System.out.println("");
         }
         isTheFirstTime = true;
-        System.out.println(user.getId() + "#" + user.getName() + "#" + user.getScore());
+//        System.out.println(user.getId() + "#" + user.getName() + "#" + user.getScore());
     }
 
     public void highlight(int row, int col) {
@@ -449,7 +520,7 @@ public class Sudoku extends javax.swing.JFrame {
 
         createBoard();
         genarateBoard();
-        runTimer();
+        start();
     }
 
     public Card[][] getMap() {
@@ -464,23 +535,40 @@ public class Sudoku extends javax.swing.JFrame {
         return fixedNum;
     }
 
-    public boolean isWin() {
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                if (!fixedNum[i][j]) {
-                    return false;
-                }
+    public void updateInformation() {
+        if (isWin()) {
+            pause();
+            getUser().setScore(getUser().getScore() + this.score);
+            for (Player p : listPlayer) {
+                if  (p.getId().equalsIgnoreCase(getUser().getId())) {
+                    p.setScore(getUser().getScore());
+               }
             }
-        }
-        return true;
-    }
-public void updateInformation() {
-    if (isWin()) {
-        user.setScore(user.getScore() + this.score);
-        int option = JOptionPane.showOptionDialog(this, "Congratulations! You are the champion!\nDo you want to continue playing?", "Winner!",
-                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Next", "No"}, "Next");
-        if (option == JOptionPane.NO_OPTION) {
-            JOptionPane.showMessageDialog(this, "Your total score: " + user.getScore());
+            JOptionPane.showMessageDialog(this, "Congratulations! You are the champion!");
+            String text = listPlayer.size() + "\n";
+            listPlayer.sort((o2, o1) -> Integer.compare(o1.getScore(), o2.getScore()));
+            for (Player p : listPlayer) {
+                text += p.toString();
+            }
+            System.out.println(text);
+            try {
+                FileWriter fw = new FileWriter("information.txt");
+                //--END FIXED PART----------------------------
+
+                //OUTPUT - @STUDENT: ADD YOUR CODE FOR OUTPUT HERE:
+                fw.write(text);
+                //--FIXED PART - DO NOT EDIT ANY THINGS HERE--
+                //--START FIXED PART-------------------------- 
+                fw.flush();
+                fw.close();
+            } catch (IOException ex) {
+                System.out.println("Output Exception # " + ex);
+            }
+            
+//            int option = JOptionPane.showOptionDialog(this, "Congratulations! You are the champion!\nDo you want to continue playing?", "Winner!",
+//                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Next", "No"}, "Next");
+//            if (option == JOptionPane.NO_OPTION) {
+//                JOptionPane.showMessageDialog(this, "Your total score: " + user.getScore());
             updateTable();
             bt1.setEnabled(false);
             bt2.setEnabled(false);
@@ -491,28 +579,32 @@ public void updateInformation() {
             bt7.setEnabled(false);
             bt8.setEnabled(false);
             bt9.setEnabled(false);
-            timer.stop();
-        } else {
-            createBoard();
-            genarateBoard();
-            reset();
-            runTimer();
+            btPause.setEnabled(false);
+            
+//            } else {
+//                createBoard();
+//                genarateBoard();
+//                reset();
+//                pause();
+//            }
+        }
+        if (isLose()) {
+            pause();
+            JOptionPane.showMessageDialog(this, "Oh noo! You are loser!");
+            bt1.setEnabled(false);
+            bt2.setEnabled(false);
+            bt3.setEnabled(false);
+            bt4.setEnabled(false);
+            bt5.setEnabled(false);
+            bt6.setEnabled(false);
+            bt7.setEnabled(false);
+            bt8.setEnabled(false);
+            bt9.setEnabled(false);
+            btPause.setEnabled(false);
+            
         }
     }
-    if (isLose()) {
-        JOptionPane.showMessageDialog(this, "Oh noo! You are loser!");
-        bt1.setEnabled(false);
-        bt2.setEnabled(false);
-        bt3.setEnabled(false);
-        bt4.setEnabled(false);
-        bt5.setEnabled(false);
-        bt6.setEnabled(false);
-        bt7.setEnabled(false);
-        bt8.setEnabled(false);
-        bt9.setEnabled(false);
-        timer.stop();
-    }
-}
+
     public void showSolve() {
         pnlBoard.setLayout(new GridLayout(NUM_ROW, NUM_COL));
         pnlBoard.removeAll();
@@ -543,20 +635,41 @@ public void updateInformation() {
 
     }
 
-public void updateTable() {
-    listPlayer.sort((o2, o1) -> Integer.compare(o1.getScore(), o2.getScore()));
-    String text = String.format("%-5s %-20s %-10s\n", "Rank", "Name", "Score");
-    text += "-----------------------------------\n";
-    int dem = 1;
-    for (Player p : listPlayer) {
-        text += String.format(" %-5d%-20s %-10s\n", dem++, p.getName(), p.getScore());
+    public void updateTable() {
+        listPlayer.sort((o2, o1) -> Integer.compare(o1.getScore(), o2.getScore()));
+        String text = String.format("%-5s %-20s %-10s\n", "Rank", "Name", "Score");
         text += "-----------------------------------\n";
+        int dem = 1;
+        for (Player p : listPlayer) {
+            text += String.format(" %-5d%-20s %-10s\n", dem++, p.getName(), p.getScore());
+            text += "-----------------------------------\n";
+        }
+        lbRanking.setText(text);
     }
-    lbRanking.setText(text);
-}
+
+    void limitTime() {
+        if (isEasy) {
+            this.limitTime = 600;
+        } else if (isMedium) {
+            this.limitTime = 900;
+        } else {
+            this.limitTime = 1800;
+        }
+    }
+
+    public boolean isWin() {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (!fixedNum[i][j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     public boolean isLose() {
-        if (countWrong == 4) {
+        if (countWrong == 5 || timeCount == limitTime) {
             btSolve.setEnabled(true);
             return true;
         }
@@ -605,8 +718,8 @@ public void updateTable() {
         jLabel6 = new javax.swing.JLabel();
         btSolve = new javax.swing.JButton();
         btRanking = new javax.swing.JButton();
-        btRanking1 = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
+        btExit = new javax.swing.JButton();
+        btPause = new javax.swing.JButton();
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -745,6 +858,7 @@ public void updateTable() {
         bt6.setText("6");
         bt6.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
         bt6.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        bt6.setSelected(true);
         bt6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bt6ActionPerformed(evt);
@@ -757,6 +871,7 @@ public void updateTable() {
         bt5.setText("5");
         bt5.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
         bt5.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        bt5.setSelected(true);
         bt5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bt5ActionPerformed(evt);
@@ -769,6 +884,7 @@ public void updateTable() {
         bt4.setText("4");
         bt4.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
         bt4.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        bt4.setSelected(true);
         bt4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bt4ActionPerformed(evt);
@@ -781,6 +897,7 @@ public void updateTable() {
         bt8.setText("8");
         bt8.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
         bt8.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        bt8.setSelected(true);
         bt8.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bt8ActionPerformed(evt);
@@ -793,6 +910,7 @@ public void updateTable() {
         bt7.setText("7");
         bt7.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
         bt7.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        bt7.setSelected(true);
         bt7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bt7ActionPerformed(evt);
@@ -805,6 +923,7 @@ public void updateTable() {
         bt9.setText("9");
         bt9.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
         bt9.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        bt9.setSelected(true);
         bt9.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bt9ActionPerformed(evt);
@@ -897,57 +1016,36 @@ public void updateTable() {
             }
         });
 
-        btRanking1.setBackground(new java.awt.Color(255, 255, 255));
-        btRanking1.setFont(new java.awt.Font("Tw Cen MT Condensed", 0, 24)); // NOI18N
-        btRanking1.setForeground(new java.awt.Color(153, 153, 153));
-        btRanking1.setText("Exit");
-        btRanking1.addActionListener(new java.awt.event.ActionListener() {
+        btExit.setBackground(new java.awt.Color(255, 153, 153));
+        btExit.setFont(new java.awt.Font("Tw Cen MT Condensed", 0, 24)); // NOI18N
+        btExit.setForeground(new java.awt.Color(153, 153, 153));
+        btExit.setText("Exit");
+        btExit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btRanking1ActionPerformed(evt);
+                btExitActionPerformed(evt);
             }
         });
 
-        jLabel7.setFont(new java.awt.Font("Tw Cen MT Condensed", 0, 24)); // NOI18N
-        jLabel7.setForeground(new java.awt.Color(153, 153, 153));
-        jLabel7.setText("Exit");
+        btPause.setBackground(new java.awt.Color(204, 204, 204));
+        btPause.setFont(new java.awt.Font("Tw Cen MT Condensed", 0, 24)); // NOI18N
+        btPause.setForeground(new java.awt.Color(153, 153, 153));
+        btPause.setText("Pause");
+        btPause.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btPauseActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnlMenuLayout = new javax.swing.GroupLayout(pnlMenu);
         pnlMenu.setLayout(pnlMenuLayout);
         pnlMenuLayout.setHorizontalGroup(
             pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createSequentialGroup()
-                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
-                        .addGap(22, 22, 22)
-                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(pnlMenuLayout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addGap(7, 7, 7)
-                                .addComponent(lbMistake)
-                                .addGap(63, 63, 63)
-                                .addComponent(jLabel5))
-                            .addGroup(pnlMenuLayout.createSequentialGroup()
-                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                                        .addComponent(jLabel3)
-                                        .addGap(24, 24, 24)
-                                        .addComponent(lbScore))
-                                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                                        .addComponent(jLabel4)
-                                        .addGap(30, 30, 30)
-                                        .addComponent(lbTime)))
-                                .addGap(25, 25, 25)
-                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel7)
-                                    .addComponent(jLabel6))))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btRanking, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btRanking1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btSolve, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                        .addGap(0, 22, Short.MAX_VALUE)
-                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(0, 24, Short.MAX_VALUE)
+                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createSequentialGroup()
+                        .addGap(0, 2, Short.MAX_VALUE)
+                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                 .addGroup(pnlMenuLayout.createSequentialGroup()
                                     .addGap(1, 1, 1)
@@ -977,60 +1075,82 @@ public void updateTable() {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btEasy)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btMedium)
+                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                                        .addComponent(jLabel5)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(btSolve, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                                        .addComponent(btMedium)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btHard)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                                        .addComponent(jLabel6)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(btRanking, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(btExit, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addGap(22, 22, 22))
+                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(btPause, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnlMenuLayout.createSequentialGroup()
+                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel3)
+                                    .addComponent(jLabel4))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btHard, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addGap(22, 22, 22))
+                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lbScore)
+                                    .addComponent(lbMistake)
+                                    .addComponent(lbTime))
+                                .addGap(181, 181, 181)))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         pnlMenuLayout.setVerticalGroup(
             pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlMenuLayout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnlMenuLayout.createSequentialGroup()
+                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btExit)
+                            .addComponent(btPause))
+                        .addGap(13, 13, 13)
                         .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pnlMenuLayout.createSequentialGroup()
-                                .addGap(28, 28, 28)
-                                .addComponent(jLabel2))
-                            .addGroup(pnlMenuLayout.createSequentialGroup()
-                                .addGap(34, 34, 34)
+                                .addGap(2, 2, 2)
+                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel5)
+                                    .addComponent(btSolve)))
+                            .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel2)
                                 .addComponent(lbMistake)))
-                        .addGap(10, 10, 10))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(btSolve)
-                        .addComponent(jLabel5)))
-                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                        .addGap(11, 11, 11)
-                        .addComponent(jLabel3))
-                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                        .addGap(17, 17, 17)
-                        .addComponent(lbScore))
-                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                        .addGap(7, 7, 7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel6)
-                            .addComponent(btRanking))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btRanking))
+                        .addGap(0, 17, Short.MAX_VALUE))
                     .addGroup(pnlMenuLayout.createSequentialGroup()
-                        .addGap(5, 5, 5)
-                        .addComponent(jLabel4))
-                    .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(btRanking1)
-                        .addComponent(jLabel7)
-                        .addComponent(lbTime)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lbScore))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel4)
+                            .addComponent(lbTime))))
                 .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btEasy)
                     .addComponent(jLabel1)
                     .addComponent(btMedium)
                     .addComponent(btHard))
-                .addGap(11, 11, 11)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(bt2, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bt1, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bt2, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bt3, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bt4, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bt5, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1060,16 +1180,55 @@ public void updateTable() {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(pnlBoard, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(pnlBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnlMenu, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(17, 17, 17))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(pnlMenu, javax.swing.GroupLayout.DEFAULT_SIZE, 579, Short.MAX_VALUE)
-                .addGap(14, 14, 14))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btExitActionPerformed
+        // TODO add your handling code here:
+        System.exit(0);
+        this.setVisible(false);
+        this.dispose();
+    }//GEN-LAST:event_btExitActionPerformed
+
+    private void btRankingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btRankingActionPerformed
+        // TODO add your handling code here:
+        this.add(pnlRanking);
+        // pnlRanking.add(lbRanking);
+
+        pnlRanking.setLocation(15, 30);
+
+        if (isBtRanking == false) {
+            isBtRanking = true;
+            updateTable();
+            pnlRanking.setVisible(true);
+            //lbRanking.setVisible(true);
+            pnlBoard.setVisible(false);
+            btNewGame.setEnabled(true);
+        } else {
+            isBtRanking = false;
+            pnlRanking.setVisible(false);
+            //lbRanking.setVisible(false);
+            pnlBoard.setVisible(true);
+            btNewGame.setEnabled(true);
+        }
+
+    }//GEN-LAST:event_btRankingActionPerformed
+
+    private void btSolveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSolveActionPerformed
+        // TODO add your handling code here:
+        showSolve();
+        if (isSolve) {
+            isSolve = false;
+        } else {
+            isSolve = true;
+        }
+    }//GEN-LAST:event_btSolveActionPerformed
 
     private void btHardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btHardActionPerformed
         // TODO add your handling code here:
@@ -1166,54 +1325,43 @@ public void updateTable() {
 
     private void btNewGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btNewGameActionPerformed
         // TODO add your handling code here:
-    createBoard();
-    genarateBoard();
-    reset();
-    runTimer(); 
+        createBoard();
+        genarateBoard();
+        limitTime();
+        reset();
+
     }//GEN-LAST:event_btNewGameActionPerformed
 
-    private void btRankingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btRankingActionPerformed
+    private void btPauseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btPauseActionPerformed
         // TODO add your handling code here:
-        this.add(pnlRanking);
-        // pnlRanking.add(lbRanking);
-
-        pnlRanking.setLocation(15, 30);
-
-        if (isBtRanking == false) {
-            isBtRanking = true;
-
-            updateTable();
-            pnlRanking.setVisible(true);
-            //lbRanking.setVisible(true);
-            pnlBoard.setVisible(false);
-            btNewGame.setEnabled(false);
+        if (isPause) {
+            isPause = false;
+            bt1.setEnabled(true);
+            bt2.setEnabled(true);
+            bt3.setEnabled(true);
+            bt4.setEnabled(true);
+            bt5.setEnabled(true);
+            bt6.setEnabled(true);
+            bt7.setEnabled(true);
+            bt8.setEnabled(true);
+            bt9.setEnabled(true);
+            if (!isLose() || !isWin()) {
+                resume();
+            }
         } else {
-            isBtRanking = false;
-            pnlRanking.setVisible(false);
-            //lbRanking.setVisible(false);
-            pnlBoard.setVisible(true);
-            btNewGame.setEnabled(true);
+            isPause = true;
+            bt1.setEnabled(false);
+            bt2.setEnabled(false);
+            bt3.setEnabled(false);
+            bt4.setEnabled(false);
+            bt5.setEnabled(false);
+            bt6.setEnabled(false);
+            bt7.setEnabled(false);
+            bt8.setEnabled(false);
+            bt9.setEnabled(false);
+            pause();
         }
-
-
-    }//GEN-LAST:event_btRankingActionPerformed
-
-    private void btRanking1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btRanking1ActionPerformed
-        // TODO add your handling code here:
-        System.exit(0);
-        this.setVisible(false);
-        this.dispose();
-    }//GEN-LAST:event_btRanking1ActionPerformed
-
-    private void btSolveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSolveActionPerformed
-        // TODO add your handling code here:
-        showSolve();
-        if (isSolve) {
-            isSolve = false;
-        } else {
-            isSolve = true;
-        }
-    }//GEN-LAST:event_btSolveActionPerformed
+    }//GEN-LAST:event_btPauseActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1261,11 +1409,12 @@ public void updateTable() {
     private javax.swing.JButton bt8;
     private javax.swing.JButton bt9;
     private javax.swing.JButton btEasy;
+    private javax.swing.JButton btExit;
     private javax.swing.JButton btHard;
     private javax.swing.JButton btMedium;
     private javax.swing.JButton btNewGame;
+    private javax.swing.JButton btPause;
     private javax.swing.JButton btRanking;
-    private javax.swing.JButton btRanking1;
     private javax.swing.JButton btSolve;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JLabel jLabel1;
@@ -1274,7 +1423,6 @@ public void updateTable() {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JPanel jPanel2;

@@ -78,9 +78,6 @@ public class Card extends JLabel {
     }
 
     public void cardClicked() {
-        System.out.println("row: " + row);
-        System.out.println("col: " + col);
-
         if (!fixedNum[row][col]) {
             parent.highlight(row, col);
             int selectedValue = parent.getSelectedNumber(); // Lấy số từ nút bên phải
@@ -107,8 +104,9 @@ public class Card extends JLabel {
                 } else {
                     parent.highlight(row, col);
                     parent.numberButtonClicked(-1);
-                    parent.updateInformation();
                     parent.isWrong();
+                    parent.updateInformation();
+                    System.out.println(parent.countWrong);
                     if (parent.countWrong < 5) {
                         JOptionPane.showMessageDialog(parent, "The value is invalid! You have '" + (5 - parent.countWrong) + "' live!");
                     }
