@@ -55,7 +55,7 @@ public class Sudoku extends javax.swing.JFrame {
     private static final int SIZE = 9;
     private static final int EMPTY = 0;
     public static final int SIZE_CARD = 64;
-    public static final int _EASY = 10;
+    public static final int _EASY = 42;
     public static final int _MEDIUM = 52;
     public static final int _HARD = 62;
     public static final int _BONUS = 100;
