@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 /**
  *
- * @author SU24_CSD201_IA1802_GROUP4
+ * @author Bui Quoc Tin - CE180935
  */
 public class Player implements Serializable {
 

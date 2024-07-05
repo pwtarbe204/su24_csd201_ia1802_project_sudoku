@@ -6,12 +6,23 @@
 package sudoku;
 
 import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Panel;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,6 +31,7 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
@@ -29,6 +41,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -42,7 +55,7 @@ public class Sudoku extends javax.swing.JFrame {
     private static final int SIZE = 9;
     private static final int EMPTY = 0;
     public static final int SIZE_CARD = 64;
-    public static final int _EASY = 42;
+    public static final int _EASY = 10;
     public static final int _MEDIUM = 52;
     public static final int _HARD = 62;
     public static final int _BONUS = 100;
@@ -58,6 +71,12 @@ public class Sudoku extends javax.swing.JFrame {
     int countWrong = 0;
     int limitTime = 600;
     long timeCount = 0;
+
+    int mistakeSave;
+    long timeSave;
+    int scoreSave;
+    int[][] boardSave = new int[9][9];
+    int level = 1;
 
     public int selectedNumber = -1;
     public int selectedRow = -1;
@@ -224,6 +243,7 @@ public class Sudoku extends javax.swing.JFrame {
             timeCount = (System.currentTimeMillis() - startTime) / 1000;
             lbTime.setText(int2time(timeCount));
             updateInformation();
+            saveData();
         }
     }
 
@@ -242,6 +262,17 @@ public class Sudoku extends javax.swing.JFrame {
         timer.scheduleAtFixedRate(new TimerTaskImpl(), 0, 1000);
     }
 
+    public void start(long time) {
+        if (isRunning) {
+            return;
+        }
+        timer = new Timer();
+        isRunning = true;
+        startTime = time;
+
+        timer.scheduleAtFixedRate(new TimerTaskImpl(), 0, 1000);
+    }
+
     //stop time
     public void pause() {
         if (!isRunning) {
@@ -250,6 +281,10 @@ public class Sudoku extends javax.swing.JFrame {
         isRunning = false;
         timer.cancel();
         elapsedTime = System.currentTimeMillis() - startTime;
+    }
+
+    public long getElapsedTime() {
+        return elapsedTime;
     }
 
     //khi stop muốn chạy tiếp thì resume 
@@ -281,6 +316,7 @@ public class Sudoku extends javax.swing.JFrame {
         lbMistake.setText("0/5");
         score = 0;
         lbScore.setText("0");
+        level = getLevel();
         timeCount = 0; // Đặt lại biến đếm thời gian về 0
         lbTime.setText(int2time(timeCount)); // Cập nhật giao diện hiển thị thời gian
         bt1.setEnabled(true);
@@ -306,16 +342,8 @@ public class Sudoku extends javax.swing.JFrame {
         }
     }
 
-    public void updateScoreEasy(int score) {
+    public void updateScore(int score) {
         this.score += score;
-        lbScore.setText(this.score + "");
-    }
-    public void updateScoreMedium(int score) {
-        this.score += score*2;
-        lbScore.setText(this.score + "");
-    }
-    public void updateScoreHard(int score) {
-        this.score += score*3;
         lbScore.setText(this.score + "");
     }
 
@@ -329,71 +357,6 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     public void genarateBoard() {
-        try (Scanner sc = new Scanner(new File("information.txt"))) {
-            int n = Integer.parseInt(sc.nextLine());
-            for (int i = 0; i < n; i++) {
-                String[] str = sc.nextLine().split("#");
-                String id = str[0];
-                String name = str[1];
-                int score = Integer.parseInt(str[2]);
-                listPlayer.add(new Player(id, name, score));
-            }
-        } catch (Exception e) {
-            System.out.println("#File is not exist!");
-        }
-        String id;
-        if (!isTheFirstTime) {
-            int check = JOptionPane.showConfirmDialog(this, "Is this the first time, right?");
-            System.out.println(check);
-            if (check == 0) {
-                while (true) {
-                    id = JOptionPane.showInputDialog("Hello, please enter id to save your information!");
-                    if (id == null) {
-                        System.exit(0);
-                        this.setVisible(false);
-                        this.dispose();
-                    }
-                    if (checkId(id) == -1) {
-                        break;
-                    } else {
-                        JOptionPane.showMessageDialog(this, "The id is exist in list!");
-                    }
-                }
-                String name;
-                while (true) {
-                    name = JOptionPane.showInputDialog("Hello, please enter your name");
-                    if (name.isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "The name can not empty!");
-                    } else {
-                        break;
-                    }
-                }
-                int score = 0;
-                user = new Player(id, name, score);
-                listPlayer.add(user);
-            } else if (check == 1) {
-                while (true) {
-                    id = JOptionPane.showInputDialog("Enter your ID: ");
-                    int index = checkId(id);
-
-                    if (id == null) {
-                        System.exit(0);
-                        this.setVisible(false);
-                        this.dispose();
-                    }
-                    if (index != -1) {
-                        user = listPlayer.get(index);
-                        break;
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Wrong ID!");
-                    }
-                }
-            } else {
-                System.exit(0);
-                this.setVisible(false);
-                this.dispose();
-            }
-        }
 
         map = new Card[NUM_ROW][NUM_COL];
 
@@ -427,7 +390,7 @@ public class Sudoku extends javax.swing.JFrame {
             }
             System.out.println("");
         }
-        isTheFirstTime = true;
+//        isTheFirstTime = true;
 //        System.out.println(user.getId() + "#" + user.getName() + "#" + user.getScore());
     }
 
@@ -523,10 +486,343 @@ public class Sudoku extends javax.swing.JFrame {
 
     public Sudoku() {
         initComponents();
+
+        this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/image/icon.png")));
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        menuSudoku();
+
+//
+//        createBoard();
+//        genarateBoard();
+//        start();
+    }
+
+    public void readInfo() {
+        try (Scanner sc = new Scanner(new File("information.txt"))) {
+            int n = Integer.parseInt(sc.nextLine());
+            for (int i = 0; i < n; i++) {
+                String[] str = sc.nextLine().split("#");
+                String id = str[0];
+                String name = str[1];
+                int score = Integer.parseInt(str[2]);
+                listPlayer.add(new Player(id, name, score));
+            }
+        } catch (Exception e) {
+            System.out.println("#File is not exist!");
+        }
+    }
+
+    public void menuSudoku() {
+        pnlBoard.setVisible(false);
+        pnlMenu.setVisible(false);
+
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
+        pnlPrepare.setSize(976, 607);
+        pnlPrepare.setLayout(null);
+        this.add(pnlPrepare);
+
+        JLabel titleLabel = new JLabel("Sudoku", JLabel.CENTER);
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 140));
+        titleLabel.setForeground(new Color(169, 72, 72));
+        titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
+        pnlPrepare.add(titleLabel); // Add the label without layout constraints
+
+//        JLabel titleLabel2 = new JLabel(" Sudoku", JLabel.CENTER);
+//        titleLabel2.setFont(new Font("Arial", Font.BOLD, 75));
+//        titleLabel2.setBounds(338, 50, 300, 100); // Set the bounds for the label
+//        pnlPrepare.add(titleLabel2); // Add the label without layout constraints
+        Button btStart = new Button("Start game");
+        Button btAboutUs = new Button("About us");
+        Button btRule = new Button("Rule");
+        Button btExit = new Button("Exit");
+
+        Font buttonFont = new Font("Agency FB", Font.PLAIN, 36);
+        btStart.setFont(buttonFont);
+        btAboutUs.setFont(buttonFont);
+        btRule.setFont(buttonFont);
+        btExit.setFont(buttonFont);
+
+        int weight = 300;
+        int height = 80;
+
+        btStart.setBounds(350, 220, weight, height);
+        btAboutUs.setBounds(350, 310, weight, height);
+        btRule.setBounds(350, 400, weight, height);
+        btExit.setBounds(350, 490, weight, height);
+
+        pnlPrepare.add(btStart);
+        pnlPrepare.add(btAboutUs);
+        pnlPrepare.add(btRule);
+        pnlPrepare.add(btExit);
+
+        btStart.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                information();
+            }
+        });
+        btExit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+    }
+
+    public void information() {
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
+        pnlPrepare.setSize(976, 607);
+        pnlPrepare.setLayout(null);
+        this.add(pnlPrepare);
+
+        JLabel titleLabel = new JLabel("Sudoku", JLabel.CENTER);
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 140));
+        titleLabel.setForeground(new Color(169, 72, 72));
+        titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
+        pnlPrepare.add(titleLabel); // Add the label without layout constraints
+
+        Button btStart = new Button("Sign Up");
+        Button btOldGame = new Button("Log In");
+        Button btBack = new Button("Back");
+
+        Font buttonFont = new Font("Times New Roman", Font.PLAIN, 36);
+        btStart.setFont(buttonFont);
+        btOldGame.setFont(buttonFont);
+        btBack.setFont(buttonFont);
+
+        int weight = 300;
+        int height = 80;
+
+        btStart.setBounds(350, 220, weight, height);
+        btOldGame.setBounds(350, 310, weight, height);
+        btBack.setBounds(350, 400, weight, height);
+
+        pnlPrepare.add(btStart);
+        pnlPrepare.add(btOldGame);
+        pnlPrepare.add(btBack);
+
+        btStart.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                newGame();
+            }
+        });
+        btOldGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                oldGame();
+            }
+        });
+        btBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                menuSudoku();
+            }
+        });
+    }
+
+    public void newGame() {
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
+        pnlPrepare.setSize(976, 607);
+        pnlPrepare.setLayout(null);
+        this.add(pnlPrepare);
+
+        JLabel titleLabel = new JLabel("Sudoku", JLabel.CENTER);
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 140));
+        titleLabel.setForeground(new Color(169, 72, 72));
+        titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
+        pnlPrepare.add(titleLabel); // Add the label without layout constraints
+
+        JTextField tfId = new JTextField("Input your ID...");
+        tfId.setFont(new Font("Arial", Font.PLAIN, 24));
+        tfId.setBounds(200, 200, 600, 70);
+        pnlPrepare.add(tfId);
+
+        tfId.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (tfId.getText().equals("Input your ID...")) {
+                    tfId.setText(""); // Xóa placeholder text khi TextField được tập trung
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (tfId.getText().isEmpty()) {
+                    tfId.setText("Input your ID..."); // Thêm lại placeholder text nếu TextField trống khi mất tập trung
+                }
+            }
+        });
+
+        JTextField tfName = new JTextField("Input your name...");
+        tfName.setFont(new Font("Arial", Font.PLAIN, 24));
+        tfName.setBounds(200, 270, 600, 70);
+        pnlPrepare.add(tfName);
+        tfName.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (tfName.getText().equals("Input your name...")) {
+                    tfName.setText(""); // Xóa placeholder text khi TextField được tập trung
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (tfName.getText().isEmpty()) {
+                    tfName.setText("Input your name..."); // Thêm lại placeholder text nếu TextField trống khi mất tập trung
+                }
+            }
+        });
+        Button btNewGame = new Button("New game");
+        Font buttonFont = new Font("Arial", Font.PLAIN, 36);
+        btNewGame.setFont(buttonFont);
+        btNewGame.setBounds(400, 360, 200, 70);
+        pnlPrepare.add(btNewGame);
+
+        Button btBack = new Button("Back");
+        btBack.setFont(buttonFont);
+        btBack.setBounds(400, 450, 200, 70);
+        pnlPrepare.add(btBack);
+
+        int score = 0;
 
         createBoard();
+        readInfo();
+        btNewGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String id, name;
+                id = tfId.getText();
+                name = tfName.getText();
+                if (!id.isEmpty() && !name.isEmpty() && !id.equalsIgnoreCase("Input your ID...") && !name.equalsIgnoreCase("Input your name...") && checkId(id) == -1) {
+                    pnlPrepare.setVisible(false);
+                    pnlBoard.setVisible(true);
+                    pnlMenu.setVisible(true);
+                    genarateBoard();
+                    start();
+                    user = new Player(id, name, score);
+                    listPlayer.add(user);
+                    String text = listPlayer.size() + "\n";
+                    for (Player p : listPlayer) {
+                        text += p.toString();
+                    }
+                    System.out.println(text);
+                    try {
+                        FileWriter fw = new FileWriter("information.txt");
+                        //--END FIXED PART----------------------------
+
+                        //OUTPUT - @STUDENT: ADD YOUR CODE FOR OUTPUT HERE:
+                        fw.write(text);
+                        //--FIXED PART - DO NOT EDIT ANY THINGS HERE--
+                        //--START FIXED PART-------------------------- 
+                        fw.flush();
+                        fw.close();
+                    } catch (IOException ex) {
+                        System.out.println("Output Exception # " + ex);
+                    }
+
+                }else if(id.isEmpty() || name.isEmpty() || id.equalsIgnoreCase("Input your ID...") || name.equalsIgnoreCase("Input your name..."))
+                    JOptionPane.showMessageDialog(pnlPrepare, "The Name and ID can not empty");
+                else {
+                    JOptionPane.showMessageDialog(pnlPrepare, "The Id have exited!!");
+                }
+            }
+        });
+        btBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                information();
+            }
+        });
+
+    }
+
+    public void oldGame() {
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
+        pnlPrepare.setSize(976, 607);
+        pnlPrepare.setLayout(null);
+        this.add(pnlPrepare);
+
+        JLabel titleLabel = new JLabel("Sudoku", JLabel.CENTER);
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 140));
+        titleLabel.setForeground(new Color(169, 72, 72));
+        titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
+        pnlPrepare.add(titleLabel); // Add the label without layout constraints
+
+        JTextField tfId = new JTextField("Input your ID...");
+        tfId.setFont(new Font("Arial", Font.PLAIN, 24));
+        tfId.setBounds(200, 250, 600, 70);
+        pnlPrepare.add(tfId);
+
+        tfId.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (tfId.getText().equals("Input your ID...")) {
+                    tfId.setText(""); // Xóa placeholder text khi TextField được tập trung
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (tfId.getText().isEmpty()) {
+                    tfId.setText("Input your ID..."); // Thêm lại placeholder text nếu TextField trống khi mất tập trung
+                }
+            }
+        });
+
+        Button btNewGame = new Button("Start game");
+        Font buttonFont = new Font("Arial", Font.PLAIN, 36);
+        btNewGame.setFont(buttonFont);
+        btNewGame.setBounds(330, 360, 350, 70);
+        pnlPrepare.add(btNewGame);
+
+        Button btBack = new Button("Back");
+        btBack.setFont(buttonFont);
+        btBack.setBounds(330, 450, 350, 70);
+        pnlPrepare.add(btBack);
+
+        createBoard();
+        readInfo();
+        btNewGame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String id, name;
+                id = tfId.getText();
+                name = tfId.getText();
+                int indexUser = checkId(id);
+                if (!id.isEmpty() && !id.equalsIgnoreCase("Input your ID...") && checkId(id) != -1) {
+                    pnlPrepare.setVisible(false);
+                    pnlBoard.setVisible(true);
+                    pnlMenu.setVisible(true);
+                    user = listPlayer.get(indexUser);
+                    openDataFile(id);
+
+                } else {
+                    JOptionPane.showMessageDialog(pnlPrepare, "The ID is not exist");
+                }
+            }
+        });
+        btBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                information();
+            }
+        });
+    }
+
+    public void startGame() {
+        pnlBoard.setVisible(true);
+        pnlMenu.setVisible(true);
+
+        createBoard();
+        readInfo();
         genarateBoard();
         start();
     }
@@ -547,6 +843,7 @@ public class Sudoku extends javax.swing.JFrame {
         if (isWin()) {
             pause();
             getUser().setScore(getUser().getScore() + this.score);
+            int scoreTmp = this.score;
             for (Player p : listPlayer) {
                 if (p.getId().equalsIgnoreCase(getUser().getId())) {
                     p.setScore(getUser().getScore());
@@ -588,7 +885,9 @@ public class Sudoku extends javax.swing.JFrame {
                 bt9.setEnabled(false);
                 btPause.setEnabled(false);
             } else if (option == JOptionPane.YES_OPTION) {
+                updateTable();
                 createBoard();
+                readInfo();
                 genarateBoard();
                 limitTime();
                 reset();
@@ -654,9 +953,9 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     void limitTime() {
-        if (isEasy) {
+        if (level == 1) {
             this.limitTime = 600;
-        } else if (isMedium) {
+        } else if (level == 2) {
             this.limitTime = 900;
         } else {
             this.limitTime = 1800;
@@ -680,6 +979,180 @@ public class Sudoku extends javax.swing.JFrame {
             return true;
         }
         return false;
+    }
+
+    public int getCountWrong() {
+        return countWrong;
+    }
+
+    public long getTimeCount() {
+        return timeCount;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public String getFileName() {
+        return "src/datauser/" + user.getId() + ".txt";
+    }
+
+    public void saveData() {
+        String saveData = "Yes\n";
+        if (!isWin() && !isLose()) {
+            timeSave = getTimeCount();
+            mistakeSave = getCountWrong();
+            scoreSave = getScore();
+            elapsedTime = System.currentTimeMillis() - startTime;
+            saveData += timeSave + "\n" + mistakeSave + "\n" + scoreSave + "\n" + elapsedTime + "\n" + level + "\n";
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    saveData += board[i][j] + " ";
+                }
+                saveData += "\n";
+            }
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    saveData += solveBoard[i][j] + " ";
+                }
+                saveData += "\n";
+            }
+
+        } else {
+            saveData = "No";
+        }
+        try {
+            FileWriter fw = new FileWriter(getFileName());
+            //--END FIXED PART----------------------------
+
+            //OUTPUT - @STUDENT: ADD YOUR CODE FOR OUTPUT HERE:
+            fw.write(saveData);
+            //--FIXED PART - DO NOT EDIT ANY THINGS HERE--
+            //--START FIXED PART-------------------------- 
+            fw.flush();
+            fw.close();
+        } catch (IOException ex) {
+            System.out.println("Output Exception # " + ex);
+        }
+        System.out.println(saveData);
+    }
+
+    public void openDataFile(String id) {
+        String filePath = "src/datauser/" + id + ".txt";
+
+        try (Scanner sc = new Scanner(new File(filePath))) {
+            //--END FIXED PART----------------------------
+
+            //INPUT - @STUDENT: ADD YOUR CODE FOR INPUT HERE:
+            String check = sc.nextLine();
+            if (check.equalsIgnoreCase("Yes")) {
+                int option = JOptionPane.showConfirmDialog(this, "Do you want to continue playing?", "", JOptionPane.YES_NO_OPTION);
+                if (option == JOptionPane.YES_OPTION) {
+                    timeCount = sc.nextInt();
+                    lbTime.setText(int2time(timeCount));
+                    countWrong = sc.nextInt();
+                    score = sc.nextInt();
+                    elapsedTime = sc.nextLong();
+                    level = sc.nextInt();
+                    limitTime();
+                    if (level == 1) {
+                        isEasy = true;
+                        btEasy.setEnabled(false);
+                    } else if (level == 2) {
+                        isMedium = true;
+                        btMedium.setEnabled(false);
+                    } else {
+                        isHard = true;
+                        btHard.setEnabled(false);
+                    }
+
+                    System.out.println("Time: " + timeCount + " \n" + "Mistake: " + countWrong + " \n" + "Score: " + score + " \n" + "Level" + level + "\nElapsedTime" + elapsedTime);
+
+                    lbMistake.setText(countWrong + "/5");
+                    lbScore.setText(score + "");
+
+                    for (int i = 0; i < 9; i++) {
+                        for (int j = 0; j < 9; j++) {
+                            board[i][j] = sc.nextInt();
+                            if (board[i][j] != 0) {
+                                fixedNum[i][j] = true;
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < 9; i++) {
+                        for (int j = 0; j < 9; j++) {
+                            solveBoard[i][j] = sc.nextInt();
+                        }
+                    }
+
+                    for (int i = 0; i < 9; i++) {
+                        for (int j = 0; j < 9; j++) {
+                            System.out.print(board[i][j] + " ");
+                        }
+                        System.out.println("");
+                    }
+                    resume();
+                } else {
+                    startGame();
+                }
+
+            } else if (check.isEmpty() || check.equalsIgnoreCase("No")) {
+                startGame();
+            }
+
+            //--FIXED PART - DO NOT EDIT ANY THINGS HERE--
+            //--START FIXED PART--------------------------    
+            sc.close();
+        } catch (FileNotFoundException ex) {
+            startGame();
+        }
+        map = new Card[NUM_ROW][NUM_COL];
+
+        pnlBoard.setLayout(new GridLayout(NUM_ROW, NUM_COL));
+        pnlBoard.removeAll();
+        pnlBoard.revalidate();
+        pnlBoard.repaint();
+
+        for (int i = 0; i < NUM_ROW; i++) {
+            for (int j = 0; j < NUM_COL; j++) {
+                mau = board[i][j];
+                map[i][j] = new Card(this, i, j, mau);
+                pnlBoard.add(map[i][j]);
+            }
+        }
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                System.out.printf("%5d", solveBoard[i][j]);
+            }
+            System.out.println("");
+        }
+    }
+
+    public void updateScoreEasy(int score) {
+        this.score += score;
+        lbScore.setText(this.score + "");
+    }
+
+    public void updateScoreMedium(int score) {
+        this.score += score * 2;
+        lbScore.setText(this.score + "");
+    }
+
+    public void updateScoreHard(int score) {
+        this.score += score * 3;
+        lbScore.setText(this.score + "");
+    }
+
+    public int getLevel() {
+        if (isEasy == true) {
+            level = 1;
+        } else if (isMedium == true) {
+            level = 2;
+        } else {
+            level = 3;
+        }
+        return level;
     }
 
     /**
@@ -942,6 +1415,7 @@ public class Sudoku extends javax.swing.JFrame {
 
         lbMistake.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         lbMistake.setText("0/5");
+        lbMistake.setDoubleBuffered(true);
 
         jLabel3.setFont(new java.awt.Font("Tw Cen MT Condensed", 0, 24)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(153, 153, 153));
@@ -1204,10 +1678,11 @@ public class Sudoku extends javax.swing.JFrame {
 
     private void btRankingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btRankingActionPerformed
         // TODO add your handling code here:
+        pnlRanking.setSize(580, 580);
         this.add(pnlRanking);
         // pnlRanking.add(lbRanking);
 
-        pnlRanking.setLocation(15, 30);
+        pnlRanking.setLocation(10, 15);
 
         if (isBtRanking == false) {
             isBtRanking = true;
@@ -1331,10 +1806,12 @@ public class Sudoku extends javax.swing.JFrame {
 
     private void btNewGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btNewGameActionPerformed
         // TODO add your handling code here:
+        reset();
         createBoard();
+        readInfo();
         genarateBoard();
         limitTime();
-        reset();
+
 
     }//GEN-LAST:event_btNewGameActionPerformed
 
@@ -1437,8 +1914,8 @@ public class Sudoku extends javax.swing.JFrame {
     private javax.swing.JTextArea lbRanking;
     private javax.swing.JLabel lbScore;
     private javax.swing.JLabel lbTime;
-    private javax.swing.JPanel pnlBoard;
-    private javax.swing.JPanel pnlMenu;
+    public javax.swing.JPanel pnlBoard;
+    public javax.swing.JPanel pnlMenu;
     private javax.swing.JPanel pnlRanking;
     // End of variables declaration//GEN-END:variables
 }

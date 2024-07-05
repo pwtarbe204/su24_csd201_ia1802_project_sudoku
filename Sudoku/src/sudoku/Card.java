@@ -51,7 +51,6 @@ public class Card extends JLabel {
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(Color.BLACK.darker());
         g2.setStroke(new BasicStroke(5));
-
         // Vẽ đường viền ngoài cùng cho lưới Sudoku
         if (row == 0) {
             g2.drawLine(0, 0, getWidth(), 0); // Đỉnh trên cùng
@@ -65,7 +64,6 @@ public class Card extends JLabel {
         if (col == 8) {
             g2.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight()); // Bên phải
         }
-
         g2.setColor(Color.BLACK.darker());
         g2.setStroke(new BasicStroke(7));
         // Vẽ đường viền cho các khu vực 3x3
@@ -90,7 +88,7 @@ public class Card extends JLabel {
                     parent.board[row][col] = selectedValue;
                     fixedNum[row][col] = true; // Đánh dấu là cố định
                     System.out.println(parent.checkRow(row) + " " + parent.checkCol(col));
-                    if (parent.isEasy) {
+                    if (parent.level == 1) {
                         if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
                             parent.updateScoreEasy(parent._BONUS);
                         } else {
@@ -107,7 +105,7 @@ public class Card extends JLabel {
                                 parent.updateScoreEasy(parent._ONECELL);
                             }
                         }
-                    } else if (parent.isMedium) {
+                    } else if (parent.level == 2) {
                         if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
                             parent.updateScoreMedium(parent._BONUS);
                         } else {
@@ -125,7 +123,7 @@ public class Card extends JLabel {
                                 parent.updateScoreMedium(parent._ONECELL);
                             }
                         }
-                    } else if (parent.isHard) {
+                    } else if (parent.level == 3) {
                         if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
                             parent.updateScoreHard(parent._BONUS);
                         } else {
@@ -144,7 +142,6 @@ public class Card extends JLabel {
                             }
                         }
                     }
-
                     parent.highlight(row, col);
                     parent.updateInformation();
                     parent.numberButtonClicked(-1);
