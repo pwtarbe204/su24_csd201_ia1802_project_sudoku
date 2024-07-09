@@ -1,7 +1,8 @@
-6
-id01#tinbqce180935#0
-id02#nhanlt180598#0
-id03#phuongndt180246#0
-id04#thiennm182310#0
+7
+id01#tinbqce180935#13100
+id07#group4_2#3075
+id02#nhanlt180598#2825
+id04#thiennm182310#2425
+id03#phuongndt180246#925
+id06#group4#525
 id05#nguyenld182257#0
-id06#VoHongKhanh#0

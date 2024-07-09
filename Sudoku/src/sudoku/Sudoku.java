@@ -58,7 +58,7 @@ public class Sudoku extends javax.swing.JFrame {
     private static final int SIZE = 9;
     private static final int EMPTY = 0;
     public static final int SIZE_CARD = 64;
-    public static final int _EASY = 42;
+    public static final int _EASY = 5;
     public static final int _MEDIUM = 52;
     public static final int _HARD = 62;
     public static final int _BONUS = 100;
@@ -80,6 +80,8 @@ public class Sudoku extends javax.swing.JFrame {
     int scoreSave;
     int[][] boardSave = new int[9][9];
     int level = 1;
+    int weight = 280;
+    int height = 80;
 
     public int selectedNumber = -1;
     public int selectedRow = -1;
@@ -315,6 +317,13 @@ public class Sudoku extends javax.swing.JFrame {
     public void reset() {
         user = getUser();
         System.out.printf("#%5s#%5s#%5s\n", user.getId(), user.getName(), user.getScore());
+        setThamSo();
+        turnOnButton();
+        pause();
+        start();
+    }
+
+    private void setThamSo() {
         countWrong = 0;
         lbMistake.setText("0/5");
         score = 0;
@@ -322,6 +331,9 @@ public class Sudoku extends javax.swing.JFrame {
         level = getLevel();
         timeCount = 0; // Đặt lại biến đếm thời gian về 0
         lbTime.setText(int2time(timeCount)); // Cập nhật giao diện hiển thị thời gian
+    }
+
+    private void turnOnButton() {
         bt1.setEnabled(true);
         bt2.setEnabled(true);
         bt3.setEnabled(true);
@@ -334,8 +346,6 @@ public class Sudoku extends javax.swing.JFrame {
         btSolve.setEnabled(false);
         btRanking.setEnabled(true);
         btPause.setEnabled(true);
-        pause();
-        start();
     }
 
     public void isWrong() {
@@ -522,9 +532,6 @@ public class Sudoku extends javax.swing.JFrame {
             System.out.println("#File is not exist!");
         }
     }
-
-    int weight = 280;
-    int height = 80;
 
     public void menuSudoku() {
         pnlBoard.setVisible(false);
@@ -751,6 +758,7 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     public void newGame() {
+        turnOnButton();
         ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
@@ -867,14 +875,8 @@ public class Sudoku extends javax.swing.JFrame {
 
     }
 
-    public void setGif() {
-        ImagePanel conheo = new ImagePanel("/image/test.gif");
-        conheo.setSize(985, 620);
-        conheo.setLayout(null);
-        pnlMenu.add(conheo);
-    }
-    
     public void oldGame() {
+        turnOnButton();
         ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
@@ -933,7 +935,6 @@ public class Sudoku extends javax.swing.JFrame {
                     pnlMenu.setVisible(true);
                     user = listPlayer.get(indexUser);
                     openDataFile(id);
-
                 } else {
                     JOptionPane.showMessageDialog(pnlPrepare, "The ID is not exist");
                 }
@@ -1002,9 +1003,9 @@ public class Sudoku extends javax.swing.JFrame {
 
             int option = JOptionPane.showOptionDialog(this, "Congratulations! You are the champion!\nDo you want to continue playing?", "Winner!",
                     JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Next", "No"}, "Next");
+            updateTable();
             if (option == JOptionPane.NO_OPTION) {
                 JOptionPane.showMessageDialog(this, "Your total score: " + user.getScore());
-                updateTable();
                 bt1.setEnabled(false);
                 bt2.setEnabled(false);
                 bt3.setEnabled(false);
@@ -1015,6 +1016,9 @@ public class Sudoku extends javax.swing.JFrame {
                 bt8.setEnabled(false);
                 bt9.setEnabled(false);
                 btPause.setEnabled(false);
+                pause();
+                saveData();
+                setThamSo();
             } else if (option == JOptionPane.YES_OPTION) {
                 updateTable();
                 createBoard();
@@ -1037,7 +1041,6 @@ public class Sudoku extends javax.swing.JFrame {
             bt8.setEnabled(false);
             bt9.setEnabled(false);
             btPause.setEnabled(false);
-
         }
     }
 
@@ -1077,7 +1080,7 @@ public class Sudoku extends javax.swing.JFrame {
         text += "-----------------------------------\n";
         int dem = 1;
         for (Player p : listPlayer) {
-            text += String.format(" %-5d%-20s   %-7s\n", dem++, p.getName(), p.getScore());
+            text += String.format(" %-5d%-20s %-10s\n", dem++, p.getName(), p.getScore());
             text += "-----------------------------------\n";
         }
         lbRanking.setText(text);
@@ -1189,11 +1192,17 @@ public class Sudoku extends javax.swing.JFrame {
                     if (level == 1) {
                         isEasy = true;
                         btEasy.setEnabled(false);
+                        btMedium.setEnabled(true);
+                        btHard.setEnabled(true);
                     } else if (level == 2) {
                         isMedium = true;
+                        btEasy.setEnabled(true);
                         btMedium.setEnabled(false);
+                        btHard.setEnabled(true);
                     } else {
                         isHard = true;
+                        btEasy.setEnabled(true);
+                        btMedium.setEnabled(true);
                         btHard.setEnabled(false);
                     }
 
@@ -1225,7 +1234,9 @@ public class Sudoku extends javax.swing.JFrame {
                     }
                     resume();
                 } else {
+                    setThamSo();
                     startGame();
+
                 }
 
             } else if (check.isEmpty() || check.equalsIgnoreCase("No")) {
@@ -1999,6 +2010,8 @@ public class Sudoku extends javax.swing.JFrame {
         pnlMenu.setVisible(false);
         pnlRanking.setVisible(false);
         pause();
+        setThamSo();
+        turnOnButton();
         menuSudoku();
     }//GEN-LAST:event_btMenuActionPerformed
 
@@ -2027,7 +2040,6 @@ public class Sudoku extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Sudoku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */

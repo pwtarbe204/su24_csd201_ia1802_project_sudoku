@@ -1,0 +1,26 @@
+                                 ========{--SUDOKU--}========
+
+   (*) You need to understand the rules of Sudoku to be able to become an "expert" of this game.
+
+(1) Please fill in the necessary information required when participating in the game and you can continue to participate with that account next time if you want.
+
+(2) Sudoku is an intellectual game based on a 9×9 grid divided into small cells.
+
+(3) The numbers to be filled in are positive integers with 1 digit and greater than 0 (from 1 to 9).
+
+(4) Each small 3×3 cube can only contain each number from 1 to 9 once.
+
+(5) Each vertical column can only contain each number from 1 to 9 once.
+
+(6) Each horizontal row can only contain each number from 1 to 9 once.
+
+(7) No numbers in the same 3×3 block, vertical column or horizontal row are allowed to be the same.
+
+(8) The game is considered completed when all numbers are filled in the Sudoku grid without violating the above rules.
+
+(9) You have five chances for each wrong choice, before being informed that you have lost.
+
+(10) When you win, your score will be recorded and on the achievement rankings.
+
+
+                                                                  >>>>> Good luck...! <<<<<
