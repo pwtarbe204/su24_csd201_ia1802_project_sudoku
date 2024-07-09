@@ -21,8 +21,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -55,7 +58,7 @@ public class Sudoku extends javax.swing.JFrame {
     private static final int SIZE = 9;
     private static final int EMPTY = 0;
     public static final int SIZE_CARD = 64;
-    public static final int _EASY = 10;
+    public static final int _EASY = 42;
     public static final int _MEDIUM = 52;
     public static final int _HARD = 62;
     public static final int _BONUS = 100;
@@ -484,9 +487,16 @@ public class Sudoku extends javax.swing.JFrame {
         return true;
     }
 
-    public Sudoku() {
-        initComponents();
+    public void drawBackground() {
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
+        pnlPrepare.setSize(985, 620);
+        pnlPrepare.setLayout(null);
+        this.add(pnlPrepare);
+    }
 
+    public Sudoku() {
+
+        initComponents();
         this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/image/icon.png")));
         this.setLocationRelativeTo(null);
         this.setResizable(false);
@@ -513,12 +523,15 @@ public class Sudoku extends javax.swing.JFrame {
         }
     }
 
+    int weight = 280;
+    int height = 80;
+
     public void menuSudoku() {
         pnlBoard.setVisible(false);
         pnlMenu.setVisible(false);
 
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
-        pnlPrepare.setSize(976, 607);
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
 
@@ -528,10 +541,6 @@ public class Sudoku extends javax.swing.JFrame {
         titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
         pnlPrepare.add(titleLabel); // Add the label without layout constraints
 
-//        JLabel titleLabel2 = new JLabel(" Sudoku", JLabel.CENTER);
-//        titleLabel2.setFont(new Font("Arial", Font.BOLD, 75));
-//        titleLabel2.setBounds(338, 50, 300, 100); // Set the bounds for the label
-//        pnlPrepare.add(titleLabel2); // Add the label without layout constraints
         Button btStart = new Button("Start game");
         Button btAboutUs = new Button("About us");
         Button btRule = new Button("Rule");
@@ -542,9 +551,6 @@ public class Sudoku extends javax.swing.JFrame {
         btAboutUs.setFont(buttonFont);
         btRule.setFont(buttonFont);
         btExit.setFont(buttonFont);
-
-        int weight = 300;
-        int height = 80;
 
         btStart.setBounds(350, 220, weight, height);
         btAboutUs.setBounds(350, 310, weight, height);
@@ -563,6 +569,20 @@ public class Sudoku extends javax.swing.JFrame {
                 information();
             }
         });
+        btRule.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                showRules();
+            }
+        });
+        btAboutUs.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                showAboutUs();
+            }
+        });
         btExit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -571,9 +591,116 @@ public class Sudoku extends javax.swing.JFrame {
         });
     }
 
+    public String readRulesFromFile() {
+        StringBuilder rules = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader("rule.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                rules.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return rules.toString();
+    }
+
+    public void showRules() {
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        pnlPrepare.setSize(985, 620);
+        pnlPrepare.setLayout(null);
+        this.add(pnlPrepare);
+
+        JLabel titleLabel = new JLabel("Sudoku Rules", JLabel.CENTER);
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 100));
+        titleLabel.setForeground(new Color(169, 72, 72));
+        titleLabel.setBounds(200, 20, 600, 100); // Set the bounds for the label
+        pnlPrepare.add(titleLabel); // Add the label without layout constraints
+
+        JTextArea rulesArea = new JTextArea();
+        rulesArea.setFont(new Font("Arial", Font.PLAIN, 24));
+        rulesArea.setText(readRulesFromFile());
+        rulesArea.setEditable(false);
+        rulesArea.setLineWrap(true);
+        rulesArea.setWrapStyleWord(true);
+
+        JScrollPane scrollPane = new JScrollPane(rulesArea);
+        scrollPane.setBounds(60, 140, 870, 350);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
+        verticalScrollBar.setValue(verticalScrollBar.getMinimum());
+
+        pnlPrepare.add(scrollPane);
+
+        Button btBack = new Button("Back");
+        Font buttonFont = new Font("Arial", Font.PLAIN, 33);
+        btBack.setFont(buttonFont);
+        btBack.setBounds(400, 500, 200, 70);
+        pnlPrepare.add(btBack);
+
+        btBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                menuSudoku();
+            }
+        });
+    }
+
+    public String readAboutUsFromFile() {
+        StringBuilder aboutUs = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader("about_us.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                aboutUs.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return aboutUs.toString();
+    }
+
+    public void showAboutUs() {
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        pnlPrepare.setSize(985, 620);
+        pnlPrepare.setLayout(null);
+        this.add(pnlPrepare);
+
+        JLabel titleLabel = new JLabel("About Us", JLabel.CENTER);
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 100));
+        titleLabel.setForeground(new Color(169, 72, 72));
+        titleLabel.setBounds(200, 20, 600, 100); // Set the bounds for the label
+        pnlPrepare.add(titleLabel); // Add the label without layout constraints
+
+        JTextArea aboutUsArea = new JTextArea();
+        aboutUsArea.setFont(new Font("Arial", Font.PLAIN, 24));
+        aboutUsArea.setText(readAboutUsFromFile());
+        aboutUsArea.setEditable(false);
+        aboutUsArea.setLineWrap(true);
+        aboutUsArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(aboutUsArea);
+        scrollPane.setBounds(60, 160, 870, 350);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        pnlPrepare.add(scrollPane);
+
+        Button btBack = new Button("Back");
+        Font buttonFont = new Font("Arial", Font.PLAIN, 36);
+        btBack.setFont(buttonFont);
+        btBack.setBounds(400, 500, 200, 70);
+        pnlPrepare.add(btBack);
+
+        btBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                menuSudoku();
+            }
+        });
+    }
+
+    ///////////////////////////////
     public void information() {
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
-        pnlPrepare.setSize(976, 607);
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
 
@@ -591,9 +718,6 @@ public class Sudoku extends javax.swing.JFrame {
         btStart.setFont(buttonFont);
         btOldGame.setFont(buttonFont);
         btBack.setFont(buttonFont);
-
-        int weight = 300;
-        int height = 80;
 
         btStart.setBounds(350, 220, weight, height);
         btOldGame.setBounds(350, 310, weight, height);
@@ -627,8 +751,8 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     public void newGame() {
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
-        pnlPrepare.setSize(976, 607);
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
 
@@ -726,9 +850,9 @@ public class Sudoku extends javax.swing.JFrame {
                         System.out.println("Output Exception # " + ex);
                     }
 
-                }else if(id.isEmpty() || name.isEmpty() || id.equalsIgnoreCase("Input your ID...") || name.equalsIgnoreCase("Input your name..."))
+                } else if (id.isEmpty() || name.isEmpty() || id.equalsIgnoreCase("Input your ID...") || name.equalsIgnoreCase("Input your name...")) {
                     JOptionPane.showMessageDialog(pnlPrepare, "The Name and ID can not empty");
-                else {
+                } else {
                     JOptionPane.showMessageDialog(pnlPrepare, "The Id have exited!!");
                 }
             }
@@ -743,9 +867,16 @@ public class Sudoku extends javax.swing.JFrame {
 
     }
 
+    public void setGif() {
+        ImagePanel conheo = new ImagePanel("/image/test.gif");
+        conheo.setSize(985, 620);
+        conheo.setLayout(null);
+        pnlMenu.add(conheo);
+    }
+    
     public void oldGame() {
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
-        pnlPrepare.setSize(976, 607);
+        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
 
@@ -946,7 +1077,7 @@ public class Sudoku extends javax.swing.JFrame {
         text += "-----------------------------------\n";
         int dem = 1;
         for (Player p : listPlayer) {
-            text += String.format(" %-5d%-20s %-10s\n", dem++, p.getName(), p.getScore());
+            text += String.format(" %-5d%-20s   %-7s\n", dem++, p.getName(), p.getScore());
             text += "-----------------------------------\n";
         }
         lbRanking.setText(text);
@@ -1199,6 +1330,7 @@ public class Sudoku extends javax.swing.JFrame {
         btRanking = new javax.swing.JButton();
         btExit = new javax.swing.JButton();
         btPause = new javax.swing.JButton();
+        btMenu = new javax.swing.JButton();
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -1217,7 +1349,7 @@ public class Sudoku extends javax.swing.JFrame {
         jCheckBoxMenuItem1.setText("jCheckBoxMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Sudoku");
+        setTitle("Sudoku Game");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setLocation(new java.awt.Point(15, 35));
 
@@ -1255,7 +1387,7 @@ public class Sudoku extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
+                .addComponent(jScrollPane1)
                 .addContainerGap())
         );
 
@@ -1516,76 +1648,90 @@ public class Sudoku extends javax.swing.JFrame {
             }
         });
 
+        btMenu.setBackground(new java.awt.Color(255, 204, 51));
+        btMenu.setFont(new java.awt.Font("Tw Cen MT Condensed", 0, 24)); // NOI18N
+        btMenu.setForeground(new java.awt.Color(153, 153, 153));
+        btMenu.setText("Menu");
+        btMenu.setFocusCycleRoot(true);
+        btMenu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btMenuActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout pnlMenuLayout = new javax.swing.GroupLayout(pnlMenu);
         pnlMenu.setLayout(pnlMenuLayout);
         pnlMenuLayout.setHorizontalGroup(
             pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createSequentialGroup()
-                .addGap(0, 24, Short.MAX_VALUE)
+                .addGap(0, 21, Short.MAX_VALUE)
                 .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createSequentialGroup()
-                        .addGap(0, 2, Short.MAX_VALUE)
-                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addGroup(pnlMenuLayout.createSequentialGroup()
-                                    .addGap(1, 1, 1)
-                                    .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(pnlMenuLayout.createSequentialGroup()
-                                            .addComponent(bt4, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addGap(18, 18, 18)
-                                            .addComponent(bt5, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                            .addComponent(bt6, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                            .addComponent(btNewGame, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
-                                                .addComponent(bt7, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(18, 18, 18)
-                                                .addComponent(bt8, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(bt9, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
-                                    .addComponent(bt1, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(18, 18, 18)
-                                    .addComponent(bt2, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(bt3, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(pnlMenuLayout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btEasy)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                                        .addComponent(jLabel5)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(btSolve, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                                        .addComponent(btMedium)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(btHard)
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addGroup(pnlMenuLayout.createSequentialGroup()
-                                        .addComponent(jLabel6)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(btRanking, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                            .addComponent(btExit, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addGap(22, 22, 22))
                     .addGroup(pnlMenuLayout.createSequentialGroup()
+                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel4))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lbScore)
+                            .addComponent(lbMistake)
+                            .addComponent(lbTime))
+                        .addGap(181, 215, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createSequentialGroup()
                         .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(btPause, javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pnlMenuLayout.createSequentialGroup()
-                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jLabel4))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(lbScore)
-                                    .addComponent(lbMistake)
-                                    .addComponent(lbTime))
-                                .addGap(181, 181, 181)))
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                                .addComponent(btPause)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btMenu)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btExit))
+                            .addGroup(pnlMenuLayout.createSequentialGroup()
+                                .addGap(0, 5, Short.MAX_VALUE)
+                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(pnlMenuLayout.createSequentialGroup()
+                                            .addGap(1, 1, 1)
+                                            .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addGroup(pnlMenuLayout.createSequentialGroup()
+                                                    .addComponent(bt4, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                    .addGap(18, 18, 18)
+                                                    .addComponent(bt5, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                    .addComponent(bt6, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                                    .addComponent(btNewGame, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
+                                                        .addComponent(bt7, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addGap(18, 18, 18)
+                                                        .addComponent(bt8, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                        .addComponent(bt9, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
+                                            .addComponent(bt1, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addGap(18, 18, 18)
+                                            .addComponent(bt2, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                            .addComponent(bt3, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                                        .addComponent(jLabel1)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btEasy)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(pnlMenuLayout.createSequentialGroup()
+                                                .addComponent(jLabel5)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(btSolve, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addGroup(pnlMenuLayout.createSequentialGroup()
+                                                .addComponent(btMedium)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btHard)
+                                                .addGap(0, 0, Short.MAX_VALUE))
+                                            .addGroup(pnlMenuLayout.createSequentialGroup()
+                                                .addComponent(jLabel6)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(btRanking, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))))
+                        .addGap(22, 22, 22))))
         );
         pnlMenuLayout.setVerticalGroup(
             pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1595,7 +1741,8 @@ public class Sudoku extends javax.swing.JFrame {
                     .addGroup(pnlMenuLayout.createSequentialGroup()
                         .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btExit)
-                            .addComponent(btPause))
+                            .addComponent(btPause)
+                            .addComponent(btMenu))
                         .addGap(13, 13, 13)
                         .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pnlMenuLayout.createSequentialGroup()
@@ -1663,7 +1810,7 @@ public class Sudoku extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(pnlBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(pnlMenu, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(17, 17, 17))
+                .addGap(18, 18, 18))
         );
 
         pack();
@@ -1846,6 +1993,15 @@ public class Sudoku extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btPauseActionPerformed
 
+    private void btMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btMenuActionPerformed
+        // TODO add your handling code here:
+        pnlBoard.setVisible(false);
+        pnlMenu.setVisible(false);
+        pnlRanking.setVisible(false);
+        pause();
+        menuSudoku();
+    }//GEN-LAST:event_btMenuActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1872,6 +2028,7 @@ public class Sudoku extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(Sudoku.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -1895,6 +2052,7 @@ public class Sudoku extends javax.swing.JFrame {
     private javax.swing.JButton btExit;
     private javax.swing.JButton btHard;
     private javax.swing.JButton btMedium;
+    private javax.swing.JButton btMenu;
     private javax.swing.JButton btNewGame;
     private javax.swing.JButton btPause;
     private javax.swing.JButton btRanking;
