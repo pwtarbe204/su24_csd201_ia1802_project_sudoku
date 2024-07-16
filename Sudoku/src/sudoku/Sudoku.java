@@ -30,8 +30,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -68,6 +70,8 @@ public class Sudoku extends javax.swing.JFrame {
     public final int _ONECELL = 25;
     public final int _ONEROWCOL = 50;
     public final int _ONEBABA = 75;
+    public Set<Integer> unableNumberBt;
+    public ArrayList<JButton> NumberBt;
 
     Card[][] map;
     Graphics2D g;
@@ -94,12 +98,11 @@ public class Sudoku extends javax.swing.JFrame {
     public boolean[][] fixedNum;
     public boolean[][] highlight;
     public int[][] solveBoard;
-    
+
     private File[] imageFiles;
     private int currentImageIndex = 0;
     private JLabel imageLabel;
-    
-    
+
     boolean isEasy = true, isMedium = false, isHard = false, isBtRanking = false, isTheFirstTime = false, isSolve = true, isPause = false;
 
     public Player user;
@@ -496,6 +499,64 @@ public class Sudoku extends javax.swing.JFrame {
         return true;
     }
 
+    public void resetNumbt() {
+        bt1.setEnabled(true);
+        bt2.setEnabled(true);
+        bt3.setEnabled(true);
+        bt4.setEnabled(true);
+        bt5.setEnabled(true);
+        bt6.setEnabled(true);
+        bt7.setEnabled(true);
+        bt8.setEnabled(true);
+        bt9.setEnabled(true);
+    }
+
+    public void setNumberLock(int row, int col) {
+        resetNumbt();
+        NumberBt = new ArrayList<>();
+        NumberBt.add(bt1);
+        NumberBt.add(bt2);
+        NumberBt.add(bt3);
+        NumberBt.add(bt4);
+        NumberBt.add(bt5);
+        NumberBt.add(bt6);
+        NumberBt.add(bt7);
+        NumberBt.add(bt8);
+        NumberBt.add(bt9);
+
+        unableNumberBt = new HashSet<>();
+        for (int i = 0; i < SIZE; i++) {
+            if (board[row][i] != 0) {
+                unableNumberBt.add(board[row][i]);
+            }
+        }
+        for (int i = 0; i < SIZE; i++) {
+            if (board[i][col] != 0) {
+                unableNumberBt.add(board[i][col]);
+            }
+        }
+        int startRow = row - row % 3;
+        int startCol = col - col % 3;
+        for (int i = startRow; i < startRow + 3; i++) {
+            for (int j = startCol; j < startCol + 3; j++) {
+                if (board[i][j] != 0) {
+                    unableNumberBt.add(board[i][j]);
+                }
+
+            }
+        }
+
+        for (Integer i : unableNumberBt) {
+            NumberBt.get(i-1).setEnabled(false);
+        }
+
+        for (Integer i : unableNumberBt) {
+            System.out.print(i + " ");
+        }
+        System.out.println("");
+
+    }
+
     public void drawBackground() {
         ImagePanel pnlPrepare = new ImagePanel("/image/background.png");
         pnlPrepare.setSize(985, 620);
@@ -600,7 +661,7 @@ public class Sudoku extends javax.swing.JFrame {
         });
     }
 
-        public void showAboutUs() {
+    public void showAboutUs() {
         // Ẩn các panel không cần thiết
         pnlBoard.setVisible(false);
         pnlMenu.setVisible(false);
@@ -977,7 +1038,7 @@ public class Sudoku extends javax.swing.JFrame {
         conheo.setLayout(null);
         pnlMenu.add(conheo);
     }
-    
+
     public void oldGame() {
         ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
@@ -1922,7 +1983,7 @@ public class Sudoku extends javax.swing.JFrame {
 
     private void btExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btExitActionPerformed
         // TODO add your handling code here:
-         int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?", "Exit", JOptionPane.YES_NO_OPTION);
+        int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?", "Exit", JOptionPane.YES_NO_OPTION);
         if (choice == JOptionPane.YES_OPTION) {
             JOptionPane.showMessageDialog(null, "Goodbye and see you again...!", "Exit", JOptionPane.INFORMATION_MESSAGE);
 

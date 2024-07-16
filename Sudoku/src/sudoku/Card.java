@@ -38,6 +38,7 @@ public class Card extends JLabel {
 
         this.mouseClicked = new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
+                
                 cardClicked();
             }
         };
@@ -74,8 +75,8 @@ public class Card extends JLabel {
             g2.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight()); // Đường viền dọc
         }
     }
-
     public void cardClicked() {
+        parent.setNumberLock(row, col);
         System.out.println("row: " + row);
         System.out.println("col: " + col);
 
@@ -88,6 +89,7 @@ public class Card extends JLabel {
                     fixedNum[row][col] = true; // Đánh dấu là cố định
                     System.out.println(parent.checkRow(row) + " " + parent.checkCol(col));
                     if (parent.level == 1) {
+                        
                         if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
                             parent.updateScoreEasy(parent._BONUS);
                         } else {
