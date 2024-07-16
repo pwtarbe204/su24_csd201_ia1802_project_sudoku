@@ -14,6 +14,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Panel;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -28,12 +29,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
@@ -80,8 +83,6 @@ public class Sudoku extends javax.swing.JFrame {
     int scoreSave;
     int[][] boardSave = new int[9][9];
     int level = 1;
-    int weight = 280;
-    int height = 80;
 
     public int selectedNumber = -1;
     public int selectedRow = -1;
@@ -93,6 +94,12 @@ public class Sudoku extends javax.swing.JFrame {
     public boolean[][] fixedNum;
     public boolean[][] highlight;
     public int[][] solveBoard;
+    
+    private File[] imageFiles;
+    private int currentImageIndex = 0;
+    private JLabel imageLabel;
+    
+    
     boolean isEasy = true, isMedium = false, isHard = false, isBtRanking = false, isTheFirstTime = false, isSolve = true, isPause = false;
 
     public Player user;
@@ -317,13 +324,6 @@ public class Sudoku extends javax.swing.JFrame {
     public void reset() {
         user = getUser();
         System.out.printf("#%5s#%5s#%5s\n", user.getId(), user.getName(), user.getScore());
-        setThamSo();
-        turnOnButton();
-        pause();
-        start();
-    }
-
-    private void setThamSo() {
         countWrong = 0;
         lbMistake.setText("0/5");
         score = 0;
@@ -331,9 +331,6 @@ public class Sudoku extends javax.swing.JFrame {
         level = getLevel();
         timeCount = 0; // Đặt lại biến đếm thời gian về 0
         lbTime.setText(int2time(timeCount)); // Cập nhật giao diện hiển thị thời gian
-    }
-
-    private void turnOnButton() {
         bt1.setEnabled(true);
         bt2.setEnabled(true);
         bt3.setEnabled(true);
@@ -346,6 +343,8 @@ public class Sudoku extends javax.swing.JFrame {
         btSolve.setEnabled(false);
         btRanking.setEnabled(true);
         btPause.setEnabled(true);
+        pause();
+        start();
     }
 
     public void isWrong() {
@@ -533,6 +532,9 @@ public class Sudoku extends javax.swing.JFrame {
         }
     }
 
+    int weight = 280;
+    int height = 80;
+
     public void menuSudoku() {
         pnlBoard.setVisible(false);
         pnlMenu.setVisible(false);
@@ -550,7 +552,7 @@ public class Sudoku extends javax.swing.JFrame {
 
         Button btStart = new Button("Start game");
         Button btAboutUs = new Button("About us");
-        Button btRule = new Button("Rule");
+        Button btRule = new Button("How to play");
         Button btExit = new Button("Exit");
 
         Font buttonFont = new Font("Agency FB", Font.PLAIN, 36);
@@ -598,110 +600,205 @@ public class Sudoku extends javax.swing.JFrame {
         });
     }
 
-    public String readRulesFromFile() {
-        StringBuilder rules = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader("rule.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                rules.append(line).append("\n");
+        public void showAboutUs() {
+        // Ẩn các panel không cần thiết
+        pnlBoard.setVisible(false);
+        pnlMenu.setVisible(false);
+
+        // Tạo panel chứa hình ảnh about us Sudoku
+        ImagePanel pnlPrepare = new ImagePanel("/image/bg_rule.png");
+        pnlPrepare.setSize(976, 607);
+        pnlPrepare.setLayout(null);
+        this.add(pnlPrepare);
+
+        // Tiêu đề "About us"
+        JLabel titleLabel = new JLabel("About us", JLabel.CENTER);
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 51));
+        titleLabel.setForeground(new Color(169, 72, 72));
+        titleLabel.setBounds(200, -12, 600, 100);
+        pnlPrepare.add(titleLabel);
+
+        // Load hình ảnh About us Sudoku
+        loadAboutUsImages();
+
+        // Label hiển thị hình ảnh
+        imageLabel = new JLabel("", JLabel.CENTER);
+        imageLabel.setBounds(20, 40, 936, 450); // Điều chỉnh kích thước khung hình lớn hơn
+
+        pnlPrepare.add(imageLabel);
+
+        // Cập nhật hình ảnh ban đầu
+        updateImageforAboutUs();
+
+        // Các nút Previous, Next, Back
+        Button btPrevious = new Button("Previous");
+        Button btNext = new Button("Next");
+        Button btBack = new Button("Back");
+
+        Font buttonFont = new Font("Arial", Font.PLAIN, 20); // Điều chỉnh kích thước font cho các nút
+        btPrevious.setFont(buttonFont);
+        btNext.setFont(buttonFont);
+        btBack.setFont(buttonFont);
+
+        btPrevious.setBounds(88, 477, 150, 50); // Điều chỉnh vị trí và kích thước cho nút Previous
+        btNext.setBounds(741, 477, 150, 50);    // Điều chỉnh vị trí và kích thước cho nút Next
+        btBack.setBounds(424, 536, 150, 60);    // Điều chỉnh vị trí và kích thước cho nút Back
+
+        pnlPrepare.add(btPrevious);
+        pnlPrepare.add(btNext);
+        pnlPrepare.add(btBack);
+
+        // Sự kiện khi nhấn nút Previous
+        btPrevious.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentImageIndex > 0) {
+                    currentImageIndex--;
+                    updateImage();
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        });
+
+        // Sự kiện khi nhấn nút Next
+        btNext.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentImageIndex < imageFiles.length - 1) {
+                    currentImageIndex++;
+                    updateImage();
+                }
+            }
+        });
+
+        // Sự kiện khi nhấn nút Back
+        btBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pnlPrepare.setVisible(false);
+                menuSudoku(); // Quay lại menu chính của game Sudoku
+            }
+        });
+    }
+
+    // Method to read image files from the "about_us" directory
+    private void loadAboutUsImages() {
+        File dir = new File("src/about_us");
+        if (dir.isDirectory()) {
+            imageFiles = dir.listFiles((dir1, name) -> name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".png"));
+            if (imageFiles != null) {
+                Arrays.sort(imageFiles);
+            }
         }
-        return rules.toString();
+    }
+
+    // Method to update the image displayed based on the current index
+    private void updateImageforAboutUs() {
+        if (imageFiles != null && imageFiles.length > 0) {
+            ImageIcon imageIcon = new ImageIcon(imageFiles[currentImageIndex].getAbsolutePath());
+            Image image = imageIcon.getImage().getScaledInstance(800, 400, Image.SCALE_SMOOTH);
+            imageLabel.setIcon(new ImageIcon(image));
+        }
     }
 
     public void showRules() {
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
-        pnlPrepare.setSize(985, 620);
+        // Ẩn các panel không cần thiết
+        pnlBoard.setVisible(false);
+        pnlMenu.setVisible(false);
+
+        // Tạo panel chứa hình ảnh quy tắc Sudoku
+        ImagePanel pnlPrepare = new ImagePanel("/image/bg_rule.png");
+        pnlPrepare.setSize(976, 607);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
 
+        // Tiêu đề "Sudoku Rules"
         JLabel titleLabel = new JLabel("Sudoku Rules", JLabel.CENTER);
-        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 100));
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 51));
         titleLabel.setForeground(new Color(169, 72, 72));
-        titleLabel.setBounds(200, 20, 600, 100); // Set the bounds for the label
-        pnlPrepare.add(titleLabel); // Add the label without layout constraints
+        titleLabel.setBounds(200, -12, 600, 100);
+        pnlPrepare.add(titleLabel);
 
-        JTextArea rulesArea = new JTextArea();
-        rulesArea.setFont(new Font("Arial", Font.PLAIN, 24));
-        rulesArea.setText(readRulesFromFile());
-        rulesArea.setEditable(false);
-        rulesArea.setLineWrap(true);
-        rulesArea.setWrapStyleWord(true);
+        // Load hình ảnh quy tắc Sudoku
+        loadRuleImages();
 
-        JScrollPane scrollPane = new JScrollPane(rulesArea);
-        scrollPane.setBounds(60, 140, 870, 350);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
-        verticalScrollBar.setValue(verticalScrollBar.getMinimum());
+        // Label hiển thị hình ảnh
+        imageLabel = new JLabel("", JLabel.CENTER);
+        imageLabel.setBounds(20, 40, 936, 450); // Điều chỉnh kích thước khung hình lớn hơn
 
-        pnlPrepare.add(scrollPane);
+        pnlPrepare.add(imageLabel);
 
+        // Cập nhật hình ảnh ban đầu
+        updateImage();
+
+        // Các nút Previous, Next, Back
+        Button btPrevious = new Button("Previous");
+        Button btNext = new Button("Next");
         Button btBack = new Button("Back");
-        Font buttonFont = new Font("Arial", Font.PLAIN, 33);
+
+        Font buttonFont = new Font("Arial", Font.PLAIN, 20); // Điều chỉnh kích thước font cho các nút
+        btPrevious.setFont(buttonFont);
+        btNext.setFont(buttonFont);
         btBack.setFont(buttonFont);
-        btBack.setBounds(400, 500, 200, 70);
+
+        btPrevious.setBounds(88, 477, 150, 50); // Điều chỉnh vị trí và kích thước cho nút Previous
+        btNext.setBounds(741, 477, 150, 50);    // Điều chỉnh vị trí và kích thước cho nút Next
+        btBack.setBounds(424, 536, 150, 60);    // Điều chỉnh vị trí và kích thước cho nút Back
+
+        pnlPrepare.add(btPrevious);
+        pnlPrepare.add(btNext);
         pnlPrepare.add(btBack);
 
+        // Sự kiện khi nhấn nút Previous
+        btPrevious.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentImageIndex > 0) {
+                    currentImageIndex--;
+                    updateImage();
+                }
+            }
+        });
+
+        // Sự kiện khi nhấn nút Next
+        btNext.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentImageIndex < imageFiles.length - 1) {
+                    currentImageIndex++;
+                    updateImage();
+                }
+            }
+        });
+
+        // Sự kiện khi nhấn nút Back
         btBack.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 pnlPrepare.setVisible(false);
-                menuSudoku();
+                currentImageIndex = 0; // Đặt lại chỉ số hình ảnh khi quay lại menu chính
+                menuSudoku(); // Quay lại menu chính của game Sudoku
             }
         });
     }
 
-    public String readAboutUsFromFile() {
-        StringBuilder aboutUs = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader("about_us.txt"))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                aboutUs.append(line).append("\n");
+    // Method to read image files from the "rule" directory
+    private void loadRuleImages() {
+        File dir = new File("src/rule");
+        if (dir.isDirectory()) {
+            imageFiles = dir.listFiles((dir1, name) -> name.toLowerCase().endsWith(".jpg") || name.toLowerCase().endsWith(".png"));
+            if (imageFiles != null) {
+                Arrays.sort(imageFiles);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return aboutUs.toString();
     }
 
-    public void showAboutUs() {
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
-        pnlPrepare.setSize(985, 620);
-        pnlPrepare.setLayout(null);
-        this.add(pnlPrepare);
-
-        JLabel titleLabel = new JLabel("About Us", JLabel.CENTER);
-        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 100));
-        titleLabel.setForeground(new Color(169, 72, 72));
-        titleLabel.setBounds(200, 20, 600, 100); // Set the bounds for the label
-        pnlPrepare.add(titleLabel); // Add the label without layout constraints
-
-        JTextArea aboutUsArea = new JTextArea();
-        aboutUsArea.setFont(new Font("Arial", Font.PLAIN, 24));
-        aboutUsArea.setText(readAboutUsFromFile());
-        aboutUsArea.setEditable(false);
-        aboutUsArea.setLineWrap(true);
-        aboutUsArea.setWrapStyleWord(true);
-        JScrollPane scrollPane = new JScrollPane(aboutUsArea);
-        scrollPane.setBounds(60, 160, 870, 350);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        pnlPrepare.add(scrollPane);
-
-        Button btBack = new Button("Back");
-        Font buttonFont = new Font("Arial", Font.PLAIN, 36);
-        btBack.setFont(buttonFont);
-        btBack.setBounds(400, 500, 200, 70);
-        pnlPrepare.add(btBack);
-
-        btBack.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                menuSudoku();
-            }
-        });
+    // Method to update the image displayed based on the current index
+    private void updateImage() {
+        if (imageFiles != null && imageFiles.length > 0) {
+            ImageIcon imageIcon = new ImageIcon(imageFiles[currentImageIndex].getAbsolutePath());
+            Image image = imageIcon.getImage().getScaledInstance(800, 400, Image.SCALE_SMOOTH);
+            imageLabel.setIcon(new ImageIcon(image));
+        }
     }
 
     ///////////////////////////////
@@ -758,7 +855,6 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     public void newGame() {
-        turnOnButton();
         ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
@@ -875,8 +971,14 @@ public class Sudoku extends javax.swing.JFrame {
 
     }
 
+    public void setGif() {
+        ImagePanel conheo = new ImagePanel("/image/test.gif");
+        conheo.setSize(985, 620);
+        conheo.setLayout(null);
+        pnlMenu.add(conheo);
+    }
+    
     public void oldGame() {
-        turnOnButton();
         ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
@@ -935,6 +1037,7 @@ public class Sudoku extends javax.swing.JFrame {
                     pnlMenu.setVisible(true);
                     user = listPlayer.get(indexUser);
                     openDataFile(id);
+
                 } else {
                     JOptionPane.showMessageDialog(pnlPrepare, "The ID is not exist");
                 }
@@ -1003,9 +1106,9 @@ public class Sudoku extends javax.swing.JFrame {
 
             int option = JOptionPane.showOptionDialog(this, "Congratulations! You are the champion!\nDo you want to continue playing?", "Winner!",
                     JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Next", "No"}, "Next");
-            updateTable();
             if (option == JOptionPane.NO_OPTION) {
                 JOptionPane.showMessageDialog(this, "Your total score: " + user.getScore());
+                updateTable();
                 bt1.setEnabled(false);
                 bt2.setEnabled(false);
                 bt3.setEnabled(false);
@@ -1016,9 +1119,6 @@ public class Sudoku extends javax.swing.JFrame {
                 bt8.setEnabled(false);
                 bt9.setEnabled(false);
                 btPause.setEnabled(false);
-                pause();
-                saveData();
-                setThamSo();
             } else if (option == JOptionPane.YES_OPTION) {
                 updateTable();
                 createBoard();
@@ -1041,6 +1141,7 @@ public class Sudoku extends javax.swing.JFrame {
             bt8.setEnabled(false);
             bt9.setEnabled(false);
             btPause.setEnabled(false);
+
         }
     }
 
@@ -1192,17 +1293,11 @@ public class Sudoku extends javax.swing.JFrame {
                     if (level == 1) {
                         isEasy = true;
                         btEasy.setEnabled(false);
-                        btMedium.setEnabled(true);
-                        btHard.setEnabled(true);
                     } else if (level == 2) {
                         isMedium = true;
-                        btEasy.setEnabled(true);
                         btMedium.setEnabled(false);
-                        btHard.setEnabled(true);
                     } else {
                         isHard = true;
-                        btEasy.setEnabled(true);
-                        btMedium.setEnabled(true);
                         btHard.setEnabled(false);
                     }
 
@@ -1234,9 +1329,7 @@ public class Sudoku extends javax.swing.JFrame {
                     }
                     resume();
                 } else {
-                    setThamSo();
                     startGame();
-
                 }
 
             } else if (check.isEmpty() || check.equalsIgnoreCase("No")) {
@@ -1675,9 +1768,10 @@ public class Sudoku extends javax.swing.JFrame {
         pnlMenuLayout.setHorizontalGroup(
             pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createSequentialGroup()
-                .addGap(0, 21, Short.MAX_VALUE)
+                .addGap(19, 19, 19)
                 .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnlMenuLayout.createSequentialGroup()
+                        .addGap(2, 2, 2)
                         .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
                             .addComponent(jLabel3)
@@ -1688,60 +1782,59 @@ public class Sudoku extends javax.swing.JFrame {
                             .addComponent(lbMistake)
                             .addComponent(lbTime))
                         .addGap(181, 215, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createSequentialGroup()
-                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pnlMenuLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                                        .addGap(1, 1, 1)
+                                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(pnlMenuLayout.createSequentialGroup()
+                                                .addComponent(bt4, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(bt5, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(bt6, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                                .addComponent(btNewGame, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
+                                                    .addComponent(bt7, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                    .addGap(18, 18, 18)
+                                                    .addComponent(bt8, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                    .addComponent(bt9, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
+                                        .addComponent(bt1, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(bt2, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(bt3, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMenuLayout.createSequentialGroup()
                                 .addComponent(btPause)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btMenu)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(btExit))
                             .addGroup(pnlMenuLayout.createSequentialGroup()
-                                .addGap(0, 5, Short.MAX_VALUE)
-                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addGroup(pnlMenuLayout.createSequentialGroup()
-                                            .addGap(1, 1, 1)
-                                            .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                .addGroup(pnlMenuLayout.createSequentialGroup()
-                                                    .addComponent(bt4, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                    .addGap(18, 18, 18)
-                                                    .addComponent(bt5, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                    .addComponent(bt6, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                                    .addComponent(btNewGame, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
-                                                        .addComponent(bt7, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addGap(18, 18, 18)
-                                                        .addComponent(bt8, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                        .addComponent(bt9, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlMenuLayout.createSequentialGroup()
-                                            .addComponent(bt1, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addGap(18, 18, 18)
-                                            .addComponent(bt2, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                            .addComponent(bt3, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btEasy)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(pnlMenuLayout.createSequentialGroup()
-                                        .addComponent(jLabel1)
+                                        .addComponent(jLabel5)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(btSolve, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                                        .addComponent(btMedium)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(btEasy)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(pnlMenuLayout.createSequentialGroup()
-                                                .addComponent(jLabel5)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(btSolve, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                            .addGroup(pnlMenuLayout.createSequentialGroup()
-                                                .addComponent(btMedium)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(btHard)
-                                                .addGap(0, 0, Short.MAX_VALUE))
-                                            .addGroup(pnlMenuLayout.createSequentialGroup()
-                                                .addComponent(jLabel6)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(btRanking, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))))
+                                        .addComponent(btHard)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGroup(pnlMenuLayout.createSequentialGroup()
+                                        .addComponent(jLabel6)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(btRanking, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
                         .addGap(22, 22, 22))))
         );
         pnlMenuLayout.setVerticalGroup(
@@ -1821,7 +1914,7 @@ public class Sudoku extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(pnlBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(pnlMenu, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(18, 18, 18))
+                .addContainerGap())
         );
 
         pack();
@@ -1829,9 +1922,14 @@ public class Sudoku extends javax.swing.JFrame {
 
     private void btExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btExitActionPerformed
         // TODO add your handling code here:
-        System.exit(0);
-        this.setVisible(false);
-        this.dispose();
+         int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?", "Exit", JOptionPane.YES_NO_OPTION);
+        if (choice == JOptionPane.YES_OPTION) {
+            JOptionPane.showMessageDialog(null, "Goodbye and see you again...!", "Exit", JOptionPane.INFORMATION_MESSAGE);
+
+            // Giải phóng tài nguyên và thoát chương trình
+            dispose(); // Giải phóng các tài nguyên của JFrame
+            System.exit(0); // Thoát chương trình
+        }
     }//GEN-LAST:event_btExitActionPerformed
 
     private void btRankingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btRankingActionPerformed
@@ -2010,8 +2108,6 @@ public class Sudoku extends javax.swing.JFrame {
         pnlMenu.setVisible(false);
         pnlRanking.setVisible(false);
         pause();
-        setThamSo();
-        turnOnButton();
         menuSudoku();
     }//GEN-LAST:event_btMenuActionPerformed
 

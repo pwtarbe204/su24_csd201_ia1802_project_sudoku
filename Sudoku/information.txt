@@ -1,6 +1,6 @@
 5
-id01#tinbqce180935#100
-id03#phuongndt180246#100
-id02#nhanlt180598#100
-id04#thiennm182310#100
-id05#nguyenld182257#100
+id01#tinbqce180935#0
+id02#nhanlt180598#0
+id03#phuongndt180246#0
+id04#thiennm182310#0
+id05#nguyenld182257#0

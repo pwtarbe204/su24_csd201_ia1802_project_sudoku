@@ -89,7 +89,7 @@ public class Card extends JLabel {
                     System.out.println(parent.checkRow(row) + " " + parent.checkCol(col));
                     if (parent.level == 1) {
                         if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
-                            parent.updateScoreEasy((parent._ONEROWCOL*2) + parent._ONEBABA + parent._BONUS);
+                            parent.updateScoreEasy(parent._BONUS);
                         } else {
                             if (parent.checkRow(row)) {
                                 parent.updateScoreEasy(parent._ONEROWCOL);
@@ -106,7 +106,7 @@ public class Card extends JLabel {
                         }
                     } else if (parent.level == 2) {
                         if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
-                            parent.updateScoreMedium((parent._ONEROWCOL*2) + parent._ONEBABA + parent._BONUS);
+                            parent.updateScoreMedium(parent._BONUS);
                         } else {
                             if (parent.checkRow(row)) {
                                 parent.updateScoreMedium(parent._ONEROWCOL);
@@ -124,7 +124,7 @@ public class Card extends JLabel {
                         }
                     } else if (parent.level == 3) {
                         if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
-                            parent.updateScoreHard((parent._ONEROWCOL*2) + parent._ONEBABA + parent._BONUS);
+                            parent.updateScoreHard(parent._BONUS);
                         } else {
                             if (parent.checkRow(row)) {
                                 parent.updateScoreHard(parent._ONEROWCOL);
