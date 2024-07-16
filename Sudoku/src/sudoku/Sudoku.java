@@ -72,10 +72,12 @@ public class Sudoku extends javax.swing.JFrame {
     public final int _ONEBABA = 75;
     public Set<Integer> unableNumberBt;
     public ArrayList<JButton> NumberBt;
+    public boolean[][] getRowCol;
 
     Card[][] map;
     Graphics2D g;
     ArrayList<Player> listPlayer;
+    Card card = new Card();
 
     int mau;
     int countWrong = 0;
@@ -121,6 +123,7 @@ public class Sudoku extends javax.swing.JFrame {
         solveBoard = new int[SIZE][SIZE];
         fixedNum = new boolean[SIZE][SIZE];
         highlight = new boolean[SIZE][SIZE];
+        getRowCol = new boolean[SIZE][SIZE];
         listPlayer = new ArrayList<>();
     }
 
@@ -1330,7 +1333,6 @@ public class Sudoku extends javax.swing.JFrame {
         } catch (IOException ex) {
             System.out.println("Output Exception # " + ex);
         }
-        System.out.println(saveData);
     }
 
     public void openDataFile(String id) {
@@ -1449,6 +1451,92 @@ public class Sudoku extends javax.swing.JFrame {
             level = 3;
         }
         return level;
+    }
+    public void fillNumber(int row, int col, int  selectedValue){
+        if (!fixedNum[row][col]) {
+            highlight(row, col);
+            if (selectedValue != -1) {
+                if (solveBoard[row][col] == selectedValue) {
+                    board[row][col] = selectedValue;
+                    fixedNum[row][col] = true; // Đánh dấu là cố định
+                    System.out.println(checkRow(row) + " " + checkCol(col));
+                    if (level == 1) {
+                        if (checkRow(row) && checkCol(col) && checkBaba(row, col)) {
+                            updateScoreEasy(_BONUS);
+                        } else {
+                            if (checkRow(row)) {
+                                updateScoreEasy(_ONEROWCOL);
+                            }
+                            if (checkCol(col)) {
+                                updateScoreEasy(_ONEROWCOL);
+                            }
+                            if (checkBaba(row, col)) {
+                                updateScoreEasy(_ONEBABA);
+                            }
+                            if (!checkRow(row) && !checkCol(col) && !checkBaba(row, col)) {
+                                updateScoreEasy(_ONECELL);
+                            }
+                        }
+                    } else if (level == 2) {
+                        if (checkRow(row) && checkCol(col) && checkBaba(row, col)) {
+                            updateScoreMedium(_BONUS);
+                        } else {
+                            if (checkRow(row)) {
+                                updateScoreMedium(_ONEROWCOL);
+                            }
+                            if (checkCol(col)) {
+                                updateScoreMedium(_ONEROWCOL);
+                            }
+                            if (checkBaba(row, col)) {
+                                updateScoreMedium(_ONEBABA);
+                            }
+
+                            if (!checkRow(row) && !checkCol(col) && !checkBaba(row, col)) {
+                                updateScoreMedium(_ONECELL);
+                            }
+                        }
+                    } else if (level == 3) {
+                        if (checkRow(row) && checkCol(col) && checkBaba(row, col)) {
+                            updateScoreHard(_BONUS);
+                        } else {
+                            if (checkRow(row)) {
+                                updateScoreHard(_ONEROWCOL);
+                            }
+                            if (checkCol(col)) {
+                                updateScoreHard(_ONEROWCOL);
+                            }
+                            if (checkBaba(row, col)) {
+                                updateScoreHard(_ONEBABA);
+                            }
+
+                            if (!checkRow(row) && !checkCol(col) && !checkBaba(row, col)) {
+                                updateScoreHard(_ONECELL);
+                            }
+                        }
+                    }
+                    highlight(row, col);
+                    updateInformation();
+                    numberButtonClicked(-1);
+                } else {
+                    highlight(row, col);
+                    updateInformation();
+                    numberButtonClicked(-1);
+                    isWrong();
+                    if (countWrong < 5) {
+                        JOptionPane.showMessageDialog(this, "The value is invalid! You have '" + (5 - countWrong) + "' live!");
+                    }
+                }
+            }
+        } else {
+            highlight(row, col);
+            numberButtonClicked(-1);
+        }
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                System.out.printf("%5d", board[i][j]);
+            }
+            System.out.println("");
+        }
     }
 
     /**
@@ -2063,6 +2151,7 @@ public class Sudoku extends javax.swing.JFrame {
         mau = 9;
         numberButtonClicked(mau);
         System.out.println("9 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt9ActionPerformed
 
     private void bt7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt7ActionPerformed
@@ -2070,6 +2159,7 @@ public class Sudoku extends javax.swing.JFrame {
         mau = 7;
         numberButtonClicked(mau);
         System.out.println("7 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt7ActionPerformed
 
     private void bt8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt8ActionPerformed
@@ -2077,6 +2167,7 @@ public class Sudoku extends javax.swing.JFrame {
         mau = 8;
         numberButtonClicked(mau);
         System.out.println("8 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt8ActionPerformed
 
     private void bt4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt4ActionPerformed
@@ -2084,6 +2175,7 @@ public class Sudoku extends javax.swing.JFrame {
         mau = 4;
         numberButtonClicked(mau);
         System.out.println("4 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt4ActionPerformed
 
     private void bt5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt5ActionPerformed
@@ -2091,6 +2183,7 @@ public class Sudoku extends javax.swing.JFrame {
         mau = 5;
         numberButtonClicked(mau);
         System.out.println("5 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt5ActionPerformed
 
     private void bt6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt6ActionPerformed
@@ -2098,6 +2191,7 @@ public class Sudoku extends javax.swing.JFrame {
         mau = 6;
         numberButtonClicked(mau);
         System.out.println("6 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt6ActionPerformed
 
     private void bt3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt3ActionPerformed
@@ -2105,6 +2199,7 @@ public class Sudoku extends javax.swing.JFrame {
         mau = 3;
         numberButtonClicked(mau);
         System.out.println("3 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt3ActionPerformed
 
     private void bt1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt1ActionPerformed
@@ -2112,13 +2207,33 @@ public class Sudoku extends javax.swing.JFrame {
         mau = 1;
         numberButtonClicked(mau);
         System.out.println("1 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt1ActionPerformed
+
+    private void framBeforeNum(int num) {
+        int r = -1;
+        int c = -1;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (getRowCol[i][j]) {
+                    r = i;
+                    c = j;
+                    break;
+                }
+                
+            }
+        }
+        if (r!=-1 && c != -1) {
+            fillNumber(r, c, num);
+        }
+    }
 
     private void bt2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bt2ActionPerformed
         // TODO add your handling code here:
         mau = 2;
         numberButtonClicked(mau);
         System.out.println("2 is selected");
+        framBeforeNum(mau);
     }//GEN-LAST:event_bt2ActionPerformed
 
     private void btNewGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btNewGameActionPerformed

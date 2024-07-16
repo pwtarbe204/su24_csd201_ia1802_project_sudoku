@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.HeadlessException;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -28,6 +29,9 @@ public class Card extends JLabel {
     public Sudoku parent;
     boolean[][] fixedNum;
 
+    public Card() {
+    }
+    
     public Card(Sudoku parent, int row, int col, int value) {
         this.parent = parent;
         this.row = row;
@@ -38,7 +42,6 @@ public class Card extends JLabel {
 
         this.mouseClicked = new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                
                 cardClicked();
             }
         };
@@ -77,95 +80,26 @@ public class Card extends JLabel {
     }
     public void cardClicked() {
         parent.setNumberLock(row, col);
-        System.out.println("row: " + row);
-        System.out.println("col: " + col);
-
-        if (!fixedNum[row][col]) {
-            parent.highlight(row, col);
-            int selectedValue = parent.getSelectedNumber(); // Lấy số từ nút bên phải
-            if (selectedValue != -1) {
-                if (parent.solveBoard[row][col] == selectedValue) {
-                    parent.board[row][col] = selectedValue;
-                    fixedNum[row][col] = true; // Đánh dấu là cố định
-                    System.out.println(parent.checkRow(row) + " " + parent.checkCol(col));
-                    if (parent.level == 1) {
-                        
-                        if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
-                            parent.updateScoreEasy(parent._BONUS);
-                        } else {
-                            if (parent.checkRow(row)) {
-                                parent.updateScoreEasy(parent._ONEROWCOL);
-                            }
-                            if (parent.checkCol(col)) {
-                                parent.updateScoreEasy(parent._ONEROWCOL);
-                            }
-                            if (parent.checkBaba(row, col)) {
-                                parent.updateScoreEasy(parent._ONEBABA);
-                            }
-                            if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
-                                parent.updateScoreEasy(parent._ONECELL);
-                            }
-                        }
-                    } else if (parent.level == 2) {
-                        if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
-                            parent.updateScoreMedium(parent._BONUS);
-                        } else {
-                            if (parent.checkRow(row)) {
-                                parent.updateScoreMedium(parent._ONEROWCOL);
-                            }
-                            if (parent.checkCol(col)) {
-                                parent.updateScoreMedium(parent._ONEROWCOL);
-                            }
-                            if (parent.checkBaba(row, col)) {
-                                parent.updateScoreMedium(parent._ONEBABA);
-                            }
-
-                            if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
-                                parent.updateScoreMedium(parent._ONECELL);
-                            }
-                        }
-                    } else if (parent.level == 3) {
-                        if (parent.checkRow(row) && parent.checkCol(col) && parent.checkBaba(row, col)) {
-                            parent.updateScoreHard(parent._BONUS);
-                        } else {
-                            if (parent.checkRow(row)) {
-                                parent.updateScoreHard(parent._ONEROWCOL);
-                            }
-                            if (parent.checkCol(col)) {
-                                parent.updateScoreHard(parent._ONEROWCOL);
-                            }
-                            if (parent.checkBaba(row, col)) {
-                                parent.updateScoreHard(parent._ONEBABA);
-                            }
-
-                            if (!parent.checkRow(row) && !parent.checkCol(col) && !parent.checkBaba(row, col)) {
-                                parent.updateScoreHard(parent._ONECELL);
-                            }
-                        }
-                    }
-                    parent.highlight(row, col);
-                    parent.updateInformation();
-                    parent.numberButtonClicked(-1);
-                } else {
-                    parent.highlight(row, col);
-                    parent.updateInformation();
-                    parent.numberButtonClicked(-1);
-                    parent.isWrong();
-                    if (parent.countWrong < 5) {
-                        JOptionPane.showMessageDialog(parent, "The value is invalid! You have '" + (5 - parent.countWrong) + "' live!");
-                    }
-                }
-            }
-        } else {
-            parent.highlight(row, col);
-            parent.numberButtonClicked(-1);
-        }
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
-                System.out.printf("%5d", parent.board[i][j]);
+                parent.getRowCol[i][j] = false;
+            }
+        }
+        System.out.println("row: " + row);
+        System.out.println("col: " + col);
+        setHighLight(row, col);
+        parent.getRowCol[row][col] = true;
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                System.out.print(parent.getRowCol[i][j] + " ");
             }
             System.out.println("");
         }
+    }
+    
+    private void setHighLight(int row, int col) {
+        parent.getRowCol[row][col] = true;
+        parent.highlight(row, col);
     }
 
     private ImageIcon getFace() {
