@@ -79,7 +79,9 @@ public class Card extends JLabel {
         }
     }
     public void cardClicked() {
-        parent.setNumberLock(row, col);
+        if (parent.level == 1) {
+            parent.setNumberLock(row, col);
+        }
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 parent.getRowCol[i][j] = false;

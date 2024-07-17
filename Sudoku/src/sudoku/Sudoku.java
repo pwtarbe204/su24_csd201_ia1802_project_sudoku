@@ -14,6 +14,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Panel;
 import java.awt.Toolkit;
@@ -78,6 +79,7 @@ public class Sudoku extends javax.swing.JFrame {
     Graphics2D g;
     ArrayList<Player> listPlayer;
     Card card = new Card();
+    ButtonImage[] btList;
 
     int mau;
     int countWrong = 0;
@@ -101,11 +103,11 @@ public class Sudoku extends javax.swing.JFrame {
     public boolean[][] highlight;
     public int[][] solveBoard;
 
-    private File[] imageFiles;
-    private int currentImageIndex = 0;
+    public File[] imageFiles;
+    public int currentImageIndex = 0;
     private JLabel imageLabel;
 
-    boolean isEasy = true, isMedium = false, isHard = false, isBtRanking = false, isTheFirstTime = false, isSolve = true, isPause = false;
+    boolean isEasy = true, isMedium = false, isHard = false, isBtRanking = false, isTheFirstTime = false, isSolve = true, isPause = false, isMenu = false, isInfo = false, isAboutUS = false, isRule = false, isNewGame = false, isOldGame = false;
 
     public Player user;
     public int score = 0;
@@ -125,6 +127,7 @@ public class Sudoku extends javax.swing.JFrame {
         highlight = new boolean[SIZE][SIZE];
         getRowCol = new boolean[SIZE][SIZE];
         listPlayer = new ArrayList<>();
+
     }
 
     public int[][] getBoard() {
@@ -375,7 +378,6 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     public void genarateBoard() {
-
         map = new Card[NUM_ROW][NUM_COL];
 
         pnlBoard.setLayout(new GridLayout(NUM_ROW, NUM_COL));
@@ -550,7 +552,7 @@ public class Sudoku extends javax.swing.JFrame {
         }
 
         for (Integer i : unableNumberBt) {
-            NumberBt.get(i-1).setEnabled(false);
+            NumberBt.get(i - 1).setEnabled(false);
         }
 
         for (Integer i : unableNumberBt) {
@@ -568,7 +570,6 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     public Sudoku() {
-
         initComponents();
         this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/image/icon.png")));
         this.setLocationRelativeTo(null);
@@ -596,14 +597,19 @@ public class Sudoku extends javax.swing.JFrame {
         }
     }
 
-    int weight = 280;
-    int height = 80;
+    int weight = 350;
+    int height = 100;
+    ImagePanel pnlPrepare;
 
     public void menuSudoku() {
+        isMenu = true;
+        isAboutUS = false;
+        isRule = false;
+
         pnlBoard.setVisible(false);
         pnlMenu.setVisible(false);
 
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
@@ -614,134 +620,79 @@ public class Sudoku extends javax.swing.JFrame {
         titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
         pnlPrepare.add(titleLabel); // Add the label without layout constraints
 
-        Button btStart = new Button("Start game");
-        Button btAboutUs = new Button("About us");
-        Button btRule = new Button("How to play");
-        Button btExit = new Button("Exit");
+        btList = new ButtonImage[20];
 
-        Font buttonFont = new Font("Agency FB", Font.PLAIN, 36);
-        btStart.setFont(buttonFont);
-        btAboutUs.setFont(buttonFont);
-        btRule.setFont(buttonFont);
-        btExit.setFont(buttonFont);
+        btList[0] = new ButtonImage(this, 0);
+        btList[1] = new ButtonImage(this, 1);
+        btList[2] = new ButtonImage(this, 2);
+        btList[3] = new ButtonImage(this, 3);
 
-        btStart.setBounds(350, 220, weight, height);
-        btAboutUs.setBounds(350, 310, weight, height);
-        btRule.setBounds(350, 400, weight, height);
-        btExit.setBounds(350, 490, weight, height);
-
-        pnlPrepare.add(btStart);
-        pnlPrepare.add(btAboutUs);
-        pnlPrepare.add(btRule);
-        pnlPrepare.add(btExit);
-
-        btStart.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                information();
-            }
-        });
-        btRule.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                showRules();
-            }
-        });
-        btAboutUs.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                showAboutUs();
-            }
-        });
-        btExit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
-            }
-        });
+        int x = 325;
+        int y = 220;
+        for (int i = 0; i < 4; i++) {
+            btList[i].setBounds(x, y, weight, height);
+            pnlPrepare.add(btList[i]);
+            y += 90;
+        }
     }
 
+    JLabel label;
+
     public void showAboutUs() {
+        currentImageIndex = 0;
+        isMenu = false;
+        isAboutUS = true;
+        isRule = false;
         // Ẩn các panel không cần thiết
         pnlBoard.setVisible(false);
         pnlMenu.setVisible(false);
 
         // Tạo panel chứa hình ảnh about us Sudoku
-        ImagePanel pnlPrepare = new ImagePanel("/image/bg_rule.png");
-        pnlPrepare.setSize(976, 607);
+        pnlPrepare = new ImagePanel("/image/bg_rule.png");
+        pnlPrepare.setSize(976, 615);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
 
         // Tiêu đề "About us"
         JLabel titleLabel = new JLabel("About us", JLabel.CENTER);
-        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 51));
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 63));
         titleLabel.setForeground(new Color(169, 72, 72));
         titleLabel.setBounds(200, -12, 600, 100);
         pnlPrepare.add(titleLabel);
+
+        setPageNum((currentImageIndex + 1) + "/6");
 
         // Load hình ảnh About us Sudoku
         loadAboutUsImages();
 
         // Label hiển thị hình ảnh
         imageLabel = new JLabel("", JLabel.CENTER);
-        imageLabel.setBounds(20, 40, 936, 450); // Điều chỉnh kích thước khung hình lớn hơn
+        imageLabel.setBounds(25, 70, 936, 450); // Điều chỉnh kích thước khung hình lớn hơn
 
         pnlPrepare.add(imageLabel);
 
         // Cập nhật hình ảnh ban đầu
         updateImageforAboutUs();
 
-        // Các nút Previous, Next, Back
-        Button btPrevious = new Button("Previous");
-        Button btNext = new Button("Next");
-        Button btBack = new Button("Back");
+        btList[6] = new ButtonImage(this, 6);
+        btList[6].setBounds(50, 10, 100, 100);
+        pnlPrepare.add(btList[6]);
 
-        Font buttonFont = new Font("Arial", Font.PLAIN, 20); // Điều chỉnh kích thước font cho các nút
-        btPrevious.setFont(buttonFont);
-        btNext.setFont(buttonFont);
-        btBack.setFont(buttonFont);
+        btList[7] = new ButtonImage(this, 7);
+        btList[7].setBounds(850, 480, 141, 110);
+        pnlPrepare.add(btList[7]);
 
-        btPrevious.setBounds(88, 477, 150, 50); // Điều chỉnh vị trí và kích thước cho nút Previous
-        btNext.setBounds(741, 477, 150, 50);    // Điều chỉnh vị trí và kích thước cho nút Next
-        btBack.setBounds(424, 536, 150, 60);    // Điều chỉnh vị trí và kích thước cho nút Back
+        btList[8] = new ButtonImage(this, 8);
+        btList[8].setBounds(50, 480, 135, 110);
+        pnlPrepare.add(btList[8]);
+    }
 
-        pnlPrepare.add(btPrevious);
-        pnlPrepare.add(btNext);
-        pnlPrepare.add(btBack);
-
-        // Sự kiện khi nhấn nút Previous
-        btPrevious.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (currentImageIndex > 0) {
-                    currentImageIndex--;
-                    updateImage();
-                }
-            }
-        });
-
-        // Sự kiện khi nhấn nút Next
-        btNext.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (currentImageIndex < imageFiles.length - 1) {
-                    currentImageIndex++;
-                    updateImage();
-                }
-            }
-        });
-
-        // Sự kiện khi nhấn nút Back
-        btBack.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                menuSudoku(); // Quay lại menu chính của game Sudoku
-            }
-        });
+    private void setPageNum(String str) {
+        label = new JLabel(str, JLabel.CENTER);
+        label.setFont(new Font("Agency FB", Font.BOLD, 51));
+        label.setForeground(new Color(255, 255, 255));
+        label.setBounds(200, 480, 600, 100);
+        pnlPrepare.add(label);
     }
 
     // Method to read image files from the "about_us" directory
@@ -765,84 +716,52 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     public void showRules() {
+        currentImageIndex = 0;
+        isRule = true;
+        isMenu = false;
+        isAboutUS = false;
+
         // Ẩn các panel không cần thiết
         pnlBoard.setVisible(false);
         pnlMenu.setVisible(false);
 
         // Tạo panel chứa hình ảnh quy tắc Sudoku
-        ImagePanel pnlPrepare = new ImagePanel("/image/bg_rule.png");
-        pnlPrepare.setSize(976, 607);
+        pnlPrepare = new ImagePanel("/image/bg_rule.png");
+        pnlPrepare.setSize(976, 615);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
 
         // Tiêu đề "Sudoku Rules"
-        JLabel titleLabel = new JLabel("Sudoku Rules", JLabel.CENTER);
-        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 51));
+        JLabel titleLabel = new JLabel("Rules", JLabel.CENTER);
+        titleLabel.setFont(new Font("Agency FB", Font.BOLD, 63));
         titleLabel.setForeground(new Color(169, 72, 72));
-        titleLabel.setBounds(200, -12, 600, 100);
+        titleLabel.setBounds(200, -5, 600, 100);
         pnlPrepare.add(titleLabel);
+
+        setPageNum((currentImageIndex + 1) + "/9");
 
         // Load hình ảnh quy tắc Sudoku
         loadRuleImages();
 
-        // Label hiển thị hình ảnh
         imageLabel = new JLabel("", JLabel.CENTER);
-        imageLabel.setBounds(20, 40, 936, 450); // Điều chỉnh kích thước khung hình lớn hơn
+        imageLabel.setBounds(25, 70, 936, 450); // Điều chỉnh kích thước khung hình lớn hơn
 
         pnlPrepare.add(imageLabel);
 
-        // Cập nhật hình ảnh ban đầu
         updateImage();
 
-        // Các nút Previous, Next, Back
-        Button btPrevious = new Button("Previous");
-        Button btNext = new Button("Next");
-        Button btBack = new Button("Back");
+        btList[6] = new ButtonImage(this, 6);
+        btList[6].setBounds(50, 10, 100, 100);
+        pnlPrepare.add(btList[6]);
 
-        Font buttonFont = new Font("Arial", Font.PLAIN, 20); // Điều chỉnh kích thước font cho các nút
-        btPrevious.setFont(buttonFont);
-        btNext.setFont(buttonFont);
-        btBack.setFont(buttonFont);
+        btList[7] = new ButtonImage(this, 7);
+        btList[7].setBounds(850, 480, 141, 110);
+        pnlPrepare.add(btList[7]);
 
-        btPrevious.setBounds(88, 477, 150, 50); // Điều chỉnh vị trí và kích thước cho nút Previous
-        btNext.setBounds(741, 477, 150, 50);    // Điều chỉnh vị trí và kích thước cho nút Next
-        btBack.setBounds(424, 536, 150, 60);    // Điều chỉnh vị trí và kích thước cho nút Back
+        btList[8] = new ButtonImage(this, 8);
+        btList[8].setBounds(50, 480, 135, 110);
+        pnlPrepare.add(btList[8]);
 
-        pnlPrepare.add(btPrevious);
-        pnlPrepare.add(btNext);
-        pnlPrepare.add(btBack);
-
-        // Sự kiện khi nhấn nút Previous
-        btPrevious.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (currentImageIndex > 0) {
-                    currentImageIndex--;
-                    updateImage();
-                }
-            }
-        });
-
-        // Sự kiện khi nhấn nút Next
-        btNext.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (currentImageIndex < imageFiles.length - 1) {
-                    currentImageIndex++;
-                    updateImage();
-                }
-            }
-        });
-
-        // Sự kiện khi nhấn nút Back
-        btBack.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                currentImageIndex = 0; // Đặt lại chỉ số hình ảnh khi quay lại menu chính
-                menuSudoku(); // Quay lại menu chính của game Sudoku
-            }
-        });
     }
 
     // Method to read image files from the "rule" directory
@@ -857,17 +776,21 @@ public class Sudoku extends javax.swing.JFrame {
     }
 
     // Method to update the image displayed based on the current index
-    private void updateImage() {
+    public void updateImage() {
         if (imageFiles != null && imageFiles.length > 0) {
             ImageIcon imageIcon = new ImageIcon(imageFiles[currentImageIndex].getAbsolutePath());
-            Image image = imageIcon.getImage().getScaledInstance(800, 400, Image.SCALE_SMOOTH);
+            Image image = imageIcon.getImage().getScaledInstance(900, 400, Image.SCALE_SMOOTH);
             imageLabel.setIcon(new ImageIcon(image));
         }
     }
 
     ///////////////////////////////
     public void information() {
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        isMenu = false;
+        isNewGame = false;
+        isInfo = true;
+
+        pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
@@ -878,48 +801,28 @@ public class Sudoku extends javax.swing.JFrame {
         titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
         pnlPrepare.add(titleLabel); // Add the label without layout constraints
 
-        Button btStart = new Button("Sign Up");
-        Button btOldGame = new Button("Log In");
-        Button btBack = new Button("Back");
+        btList[4] = (new ButtonImage(this, 4));
+        btList[5] = (new ButtonImage(this, 5));
 
-        Font buttonFont = new Font("Times New Roman", Font.PLAIN, 36);
-        btStart.setFont(buttonFont);
-        btOldGame.setFont(buttonFont);
-        btBack.setFont(buttonFont);
-
-        btStart.setBounds(350, 220, weight, height);
-        btOldGame.setBounds(350, 310, weight, height);
-        btBack.setBounds(350, 400, weight, height);
-
-        pnlPrepare.add(btStart);
-        pnlPrepare.add(btOldGame);
-        pnlPrepare.add(btBack);
-
-        btStart.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                newGame();
-            }
-        });
-        btOldGame.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                oldGame();
-            }
-        });
-        btBack.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                menuSudoku();
-            }
-        });
+        int x = 325;
+        int y = 250;
+        for (int i = 4; i < 6; i++) {
+            btList[i].setBounds(x, y, weight, height);
+            pnlPrepare.add(btList[i]);
+            y += 90;
+        }
+        btList[3].setBounds(x, y, weight, height);
+        pnlPrepare.add(btList[3]);
     }
 
+    JTextField tfId;
+    JTextField tfName;
+
     public void newGame() {
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        isInfo = false;
+        isNewGame = true;
+
+        pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
@@ -930,7 +833,7 @@ public class Sudoku extends javax.swing.JFrame {
         titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
         pnlPrepare.add(titleLabel); // Add the label without layout constraints
 
-        JTextField tfId = new JTextField("Input your ID...");
+        tfId = new JTextField("Input your ID...");
         tfId.setFont(new Font("Arial", Font.PLAIN, 24));
         tfId.setBounds(200, 200, 600, 70);
         pnlPrepare.add(tfId);
@@ -951,7 +854,7 @@ public class Sudoku extends javax.swing.JFrame {
             }
         });
 
-        JTextField tfName = new JTextField("Input your name...");
+        tfName = new JTextField("Input your name...");
         tfName.setFont(new Font("Arial", Font.PLAIN, 24));
         tfName.setBounds(200, 270, 600, 70);
         pnlPrepare.add(tfName);
@@ -970,80 +873,65 @@ public class Sudoku extends javax.swing.JFrame {
                 }
             }
         });
-        Button btNewGame = new Button("New game");
-        Font buttonFont = new Font("Arial", Font.PLAIN, 36);
-        btNewGame.setFont(buttonFont);
-        btNewGame.setBounds(400, 360, 200, 70);
-        pnlPrepare.add(btNewGame);
+        btList[9] = new ButtonImage(this, 9);
+        btList[9].setBounds(320, 360, 350, 100);
+        pnlPrepare.add(btList[9]);
 
-        Button btBack = new Button("Back");
-        btBack.setFont(buttonFont);
-        btBack.setBounds(400, 450, 200, 70);
-        pnlPrepare.add(btBack);
+        btList[10] = new ButtonImage(this, 10);
+        btList[10].setBounds(320, 450, 350, 100);
+        pnlPrepare.add(btList[10]);
 
         int score = 0;
-
         createBoard();
         readInfo();
-        btNewGame.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String id, name;
-                id = tfId.getText();
-                name = tfName.getText();
-                if (!id.isEmpty() && !name.isEmpty() && !id.equalsIgnoreCase("Input your ID...") && !name.equalsIgnoreCase("Input your name...") && checkId(id) == -1) {
-                    pnlPrepare.setVisible(false);
-                    pnlBoard.setVisible(true);
-                    pnlMenu.setVisible(true);
-                    genarateBoard();
-                    start();
-                    user = new Player(id, name, score);
-                    listPlayer.add(user);
-                    String text = listPlayer.size() + "\n";
-                    for (Player p : listPlayer) {
-                        text += p.toString();
-                    }
-                    System.out.println(text);
-                    try {
-                        FileWriter fw = new FileWriter("information.txt");
-                        //--END FIXED PART----------------------------
-
-                        //OUTPUT - @STUDENT: ADD YOUR CODE FOR OUTPUT HERE:
-                        fw.write(text);
-                        //--FIXED PART - DO NOT EDIT ANY THINGS HERE--
-                        //--START FIXED PART-------------------------- 
-                        fw.flush();
-                        fw.close();
-                    } catch (IOException ex) {
-                        System.out.println("Output Exception # " + ex);
-                    }
-
-                } else if (id.isEmpty() || name.isEmpty() || id.equalsIgnoreCase("Input your ID...") || name.equalsIgnoreCase("Input your name...")) {
-                    JOptionPane.showMessageDialog(pnlPrepare, "The Name and ID can not empty");
-                } else {
-                    JOptionPane.showMessageDialog(pnlPrepare, "The Id have exited!!");
-                }
-            }
-        });
-        btBack.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                information();
-            }
-        });
-
     }
 
-    public void setGif() {
-        ImagePanel conheo = new ImagePanel("/image/test.gif");
-        conheo.setSize(985, 620);
-        conheo.setLayout(null);
-        pnlMenu.add(conheo);
+    public void idName() throws HeadlessException {
+        String id, name;
+        id = tfId.getText();
+        name = tfName.getText();
+        if (!id.isEmpty() && !name.isEmpty() && !id.equalsIgnoreCase("Input your ID...") && !name.equalsIgnoreCase("Input your name...") && checkId(id) == -1 && id.matches("[a-zA-Z0-9]+") && name.matches("[a-zA-Z0-9]+")) {
+            pnlPrepare.setVisible(false);
+            pnlBoard.setVisible(true);
+            pnlMenu.setVisible(true);
+            genarateBoard();
+            start();
+            user = new Player(id, name, score);
+            listPlayer.add(user);
+            String text = listPlayer.size() + "\n";
+            for (Player p : listPlayer) {
+                text += p.toString();
+            }
+            System.out.println(text);
+            try {
+                FileWriter fw = new FileWriter("information.txt");
+                //--END FIXED PART----------------------------
+
+                //OUTPUT - @STUDENT: ADD YOUR CODE FOR OUTPUT HERE:
+                fw.write(text);
+                //--FIXED PART - DO NOT EDIT ANY THINGS HERE--
+                //--START FIXED PART-------------------------- 
+                fw.flush();
+                fw.close();
+            } catch (IOException ex) {
+                System.out.println("Output Exception # " + ex);
+            }
+
+        } else if (!id.matches("[a-zA-Z0-9]+") || !name.matches("[a-zA-Z0-9]+")){
+            JOptionPane.showMessageDialog(pnlPrepare, "The Name and ID just accept characrers and number!");
+        }
+        else if (id.isEmpty() || name.isEmpty() || id.equalsIgnoreCase("Input your ID...") || name.equalsIgnoreCase("Input your name...")) {
+            JOptionPane.showMessageDialog(pnlPrepare, "The Name and ID can not empty");
+        } else {
+            JOptionPane.showMessageDialog(pnlPrepare, "The Id have exited!!");
+        }
     }
 
     public void oldGame() {
-        ImagePanel pnlPrepare = new ImagePanel("/image/background.gif");
+        isInfo = false;
+        isOldGame = true;
+
+        pnlPrepare = new ImagePanel("/image/background.gif");
         pnlPrepare.setSize(985, 620);
         pnlPrepare.setLayout(null);
         this.add(pnlPrepare);
@@ -1054,7 +942,7 @@ public class Sudoku extends javax.swing.JFrame {
         titleLabel.setBounds(300, 50, 400, 120); // Set the bounds for the label
         pnlPrepare.add(titleLabel); // Add the label without layout constraints
 
-        JTextField tfId = new JTextField("Input your ID...");
+        tfId = new JTextField("Input your ID...");
         tfId.setFont(new Font("Arial", Font.PLAIN, 24));
         tfId.setBounds(200, 250, 600, 70);
         pnlPrepare.add(tfId);
@@ -1075,45 +963,46 @@ public class Sudoku extends javax.swing.JFrame {
             }
         });
 
+        btList[9] = new ButtonImage(this, 9);
+        btList[9].setBounds(320, 360, 350, 100);
+        pnlPrepare.add(btList[9]);
+
+        btList[10] = new ButtonImage(this, 10);
+        btList[10].setBounds(320, 450, 350, 100);
+        pnlPrepare.add(btList[10]);
+
         Button btNewGame = new Button("Start game");
         Font buttonFont = new Font("Arial", Font.PLAIN, 36);
         btNewGame.setFont(buttonFont);
         btNewGame.setBounds(330, 360, 350, 70);
-        pnlPrepare.add(btNewGame);
+        //pnlPrepare.add(btNewGame);
 
         Button btBack = new Button("Back");
         btBack.setFont(buttonFont);
         btBack.setBounds(330, 450, 350, 70);
-        pnlPrepare.add(btBack);
+        //pnlPrepare.add(btBack);
 
         createBoard();
         readInfo();
-        btNewGame.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String id, name;
-                id = tfId.getText();
-                name = tfId.getText();
-                int indexUser = checkId(id);
-                if (!id.isEmpty() && !id.equalsIgnoreCase("Input your ID...") && checkId(id) != -1) {
-                    pnlPrepare.setVisible(false);
-                    pnlBoard.setVisible(true);
-                    pnlMenu.setVisible(true);
-                    user = listPlayer.get(indexUser);
-                    openDataFile(id);
+    }
 
-                } else {
-                    JOptionPane.showMessageDialog(pnlPrepare, "The ID is not exist");
-                }
-            }
-        });
-        btBack.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pnlPrepare.setVisible(false);
-                information();
-            }
-        });
+    public void id() throws HeadlessException {
+        String id;
+        id = tfId.getText();
+        int indexUser = checkId(id);
+        if (!id.isEmpty() && !id.equalsIgnoreCase("Input your ID...") && checkId(id) != -1 && id.matches("[a-zA-Z0-9]+")) {
+            pnlPrepare.setVisible(false);
+            pnlBoard.setVisible(true);
+            pnlMenu.setVisible(true);
+            user = listPlayer.get(indexUser);
+            openDataFile(id);
+
+        } else if (!id.matches("[a-zA-Z0-9]+")) {
+            JOptionPane.showMessageDialog(pnlPrepare, "The ID just accept characters and numbers!");
+        }
+        else {
+            JOptionPane.showMessageDialog(pnlPrepare, "The ID is not exist");
+        }
     }
 
     public void startGame() {
@@ -1452,7 +1341,8 @@ public class Sudoku extends javax.swing.JFrame {
         }
         return level;
     }
-    public void fillNumber(int row, int col, int  selectedValue){
+
+    public void fillNumber(int row, int col, int selectedValue) {
         if (!fixedNum[row][col]) {
             highlight(row, col);
             if (selectedValue != -1) {
@@ -1626,18 +1516,18 @@ public class Sudoku extends javax.swing.JFrame {
         pnlRankingLayout.setHorizontalGroup(
             pnlRankingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlRankingLayout.createSequentialGroup()
-                .addGap(226, 226, 226)
-                .addComponent(jLabel8)
-                .addContainerGap(208, Short.MAX_VALUE))
-            .addGroup(pnlRankingLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jScrollPane1)
                 .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlRankingLayout.createSequentialGroup()
+                .addContainerGap(225, Short.MAX_VALUE)
+                .addComponent(jLabel8)
+                .addGap(209, 209, 209))
         );
         pnlRankingLayout.setVerticalGroup(
             pnlRankingLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlRankingLayout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(7, 7, 7)
                 .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1)
@@ -1930,7 +1820,7 @@ public class Sudoku extends javax.swing.JFrame {
                             .addComponent(lbScore)
                             .addComponent(lbMistake)
                             .addComponent(lbTime))
-                        .addGap(181, 215, Short.MAX_VALUE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(pnlMenuLayout.createSequentialGroup()
                         .addGroup(pnlMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pnlMenuLayout.createSequentialGroup()
@@ -2053,17 +1943,17 @@ public class Sudoku extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(pnlBoard, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(pnlMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(pnlMenu, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(17, 17, 17))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(pnlBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnlMenu, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(pnlMenu, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pnlBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -2083,11 +1973,11 @@ public class Sudoku extends javax.swing.JFrame {
 
     private void btRankingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btRankingActionPerformed
         // TODO add your handling code here:
-        pnlRanking.setSize(580, 580);
+        pnlRanking.setSize(570, 570);
         this.add(pnlRanking);
         // pnlRanking.add(lbRanking);
 
-        pnlRanking.setLocation(10, 15);
+        pnlRanking.setLocation(20, 20);
 
         if (isBtRanking == false) {
             isBtRanking = true;
@@ -2220,10 +2110,9 @@ public class Sudoku extends javax.swing.JFrame {
                     c = j;
                     break;
                 }
-                
             }
         }
-        if (r!=-1 && c != -1) {
+        if (r != -1 && c != -1) {
             fillNumber(r, c, num);
         }
     }
@@ -2283,8 +2172,10 @@ public class Sudoku extends javax.swing.JFrame {
         pnlBoard.setVisible(false);
         pnlMenu.setVisible(false);
         pnlRanking.setVisible(false);
+
         pause();
         menuSudoku();
+        isMenu = true;
     }//GEN-LAST:event_btMenuActionPerformed
 
     /**
