@@ -61,6 +61,10 @@ public class ButtonImage extends JLabel {
                 return new ImageIcon(getClass().getResource("/image/btImagePlay.png"));
             case 10:
                 return new ImageIcon(getClass().getResource("/image/btImageBack.png"));
+            case 11:
+                return new ImageIcon(getClass().getResource("/image/fptLogo.png"));
+            case 12:
+                return new ImageIcon(getClass().getResource("/image/dofin.gif"));
         }
         return null;
     }
@@ -72,7 +76,7 @@ public class ButtonImage extends JLabel {
     private void cardClicked() {
         System.out.println(value);
         if (parent.isMenu == true) {
-            System.out.println("menu: " + parent.isMenu);
+            //System.out.println("menu: " + parent.isMenu);
             if (value == 0) {
                 parent.pnlPrepare.setVisible(false);
                 parent.information();
@@ -87,7 +91,7 @@ public class ButtonImage extends JLabel {
                 System.exit(0);
             }
         } else if (parent.isInfo == true) {
-            System.out.println("info: " + parent.isInfo);
+            //System.out.println("info: " + parent.isInfo);
             if (value == 4) {
                 parent.pnlPrepare.setVisible(false);
                 parent.newGame();
@@ -101,8 +105,8 @@ public class ButtonImage extends JLabel {
                 parent.menuSudoku();
             }
         } else if (parent.isAboutUS == true || parent.isRule == true) {
-            System.out.println("us: " + parent.isAboutUS);
-            System.out.println("rule: " + parent.isRule);
+            //System.out.println("us: " + parent.isAboutUS);
+            //System.out.println("rule: " + parent.isRule);
             if (value == 6) {
                 parent.pnlPrepare.setVisible(false);
                 parent.menuSudoku();
@@ -128,7 +132,7 @@ public class ButtonImage extends JLabel {
                 }
             }
         } else if (parent.isNewGame == true) {
-             System.out.println("newgame: " + parent.isNewGame);
+             //System.out.println("newgame: " + parent.isNewGame);
             if (value == 9) {
                 parent.idName();
             } else if (value == 10) {
@@ -138,7 +142,7 @@ public class ButtonImage extends JLabel {
                 
             }
         }  else if (parent.isOldGame == true) {
-             System.out.println("newgame: " + parent.isNewGame);
+             //System.out.println("newgame: " + parent.isNewGame);
             if (value == 9) {
                 parent.id();
             } else if (value == 10) {
